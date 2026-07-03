@@ -1,0 +1,14 @@
+# Netlify deploy config for the DatoCMS plugin.
+#
+# The plugin is a static Vite build loaded by DatoCMS inside an <iframe> from the
+# registered plugin URL, so we just build and publish the static `dist/` output.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Vite's `base: './'` already emits relative asset paths, so no redirects are
+# needed — DatoCMS loads `index.html` directly from the site root.
+#
+# Note: we intentionally do NOT set `X-Frame-Options`; DatoCMS must be able to
+# embed this site in an iframe. Netlify sends no framing header by default, which
+# is what we want.
