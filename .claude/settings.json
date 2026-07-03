@@ -9,7 +9,10 @@
       "mcp__claude_ai_Dato_CMS__whoami",
       "Bash(gh auth *)",
       "Bash(command -v gh)",
-      "Read(//opt/homebrew/bin/**)"
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git -c user.name=\"Nils Binder\" -c user.email=\"nils.binder@9elements.com\" commit -q -m \"Initial commit: plugin spec and repo skeleton\")"
     ]
   }
 }
