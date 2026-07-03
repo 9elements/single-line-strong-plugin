@@ -12,7 +12,16 @@
       "Read(//opt/homebrew/bin/**)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git -c user.name=\"Nils Binder\" -c user.email=\"nils.binder@9elements.com\" commit -q -m \"Initial commit: plugin spec and repo skeleton\")"
+      "Bash(git -c user.name=\"Nils Binder\" -c user.email=\"nils.binder@9elements.com\" commit -q -m \"Initial commit: plugin spec and repo skeleton\")",
+      "Bash(gh repo *)",
+      "Bash(gh issue *)",
+      "Bash(npm -v)",
+      "Bash(git checkout *)",
+      "Bash(npm install *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(vercel --version)",
+      "Bash(netlify --version)",
+      "Bash(npm ls *)"
     ]
   }
 }
