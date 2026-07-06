@@ -46,6 +46,10 @@
 .sls-bold-btn[aria-pressed="true"] {
   background: var(--accent-color, #147efb);
   color: #fff;
+
+  &:hover {
+    background: color-mix(in srgb, var(--accent-color, #147efb) 90%, #000);
+  }
 }
 
 .sls-bold-btn:disabled {
