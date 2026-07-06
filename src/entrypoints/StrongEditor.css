@@ -61,6 +61,7 @@
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
+  background: var(--color--surface-raised, #fff);
 }
 
 .sls-content {
@@ -72,6 +73,25 @@
   overflow-x: auto;
   overflow-y: hidden;
   color: var(--light-body-color, #44484b);
+  color: var(--color-ink, #444);
+}
+
+/* Live "X/Y" character counter, pinned to the right edge of the control. */
+.sls-counter {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--placeholder-body-color, #8b8b8b);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* At the limit the counter turns red to signal input is blocked. */
+.sls-counter[data-at-limit="true"] {
+  color: var(--alert-color, #eb5757);
+  font-weight: 600;
 }
 
 /* The placeholder overlays the empty editable area. */
