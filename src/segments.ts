@@ -14,17 +14,16 @@ export type Segment = { value: string; mark: boolean };
  *   - adjacent segments that share the same `mark` value are merged, and
  *   - a lone single-space segment sitting between two segments that share the
  *     *other* mark is absorbed into them, and
- *   - leading/trailing whitespace is trimmed off every segment.
+ *   - leading whitespace is trimmed off the first segment and trailing
+ *     whitespace off the last segment.
  *
  * The absorption rule reflects that a space's mark is visually meaningless: e.g.
  * `"jetzt"(mark) + " "(plain) + "mein"(mark)` should collapse into a single
  * marked `"jetzt mein"` rather than three segments split by an unmarked space.
- * It runs *before* trimming precisely so that space becomes interior (and thus
- * survives) rather than being dropped as edge whitespace.
  *
- * Trimming yields segments with no edge whitespace, which keeps the renderer
- * simple. Note this drops whitespace that only lived at a segment boundary, so
- * the concatenated text may lose spaces between differently-marked runs.
+ * Trimming touches only the two outer edges of the whole text, so interior
+ * whitespace between differently-marked runs is preserved (the concatenated text
+ * keeps its spaces); only leading/trailing whitespace of the field is dropped.
  *
  * These rules keep the stored array minimal and canonical, so a given rendered
  * text always serializes to exactly one array (stable round-trips, clean diffs).
@@ -61,18 +60,22 @@ export function normalizeSegments(segments: Segment[]): Segment[] {
     absorbed.push(current);
   }
 
-  // Third pass: trim edge whitespace off every segment, drop any that become
-  // empty, and re-merge runs that end up adjacent and share a mark (dropping a
-  // whitespace-only run between two same-mark runs can create such adjacency).
+  // Third pass: trim only the outer edges — leading whitespace off the first run
+  // and trailing whitespace off the last run — leaving interior whitespace
+  // intact. Drop any run that becomes empty, and re-merge runs left adjacent with
+  // the same mark (dropping an emptied edge run can create such adjacency).
   const result: Segment[] = [];
-  for (const { value, mark } of absorbed) {
-    const trimmed = value.trim();
-    if (trimmed.length === 0) continue;
+  for (let i = 0; i < absorbed.length; i += 1) {
+    let value = absorbed[i].value;
+    if (i === 0) value = value.trimStart();
+    if (i === absorbed.length - 1) value = value.trimEnd();
+    if (value.length === 0) continue;
+    const { mark } = absorbed[i];
     const last = result[result.length - 1];
     if (last && last.mark === mark) {
-      last.value += trimmed;
+      last.value += value;
     } else {
-      result.push({ value: trimmed, mark });
+      result.push({ value, mark });
     }
   }
   return result;
