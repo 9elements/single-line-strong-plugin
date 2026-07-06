@@ -16,9 +16,9 @@ import { StrongEditor } from './entrypoints/StrongEditor';
 import { serializeFieldValue, type Segment } from './segments';
 
 const SAMPLE: Segment[] = [
-  { text: 'This is my ', bold: false },
-  { text: 'highlighted', bold: true },
-  { text: ' text', bold: false },
+  { value: 'This is my ', mark: false },
+  { value: 'highlighted', mark: true },
+  { value: ' text', mark: false },
 ];
 
 function Row({ title, children }: { title: string; children: React.ReactNode }) {

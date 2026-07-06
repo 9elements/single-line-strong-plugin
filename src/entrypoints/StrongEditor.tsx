@@ -267,8 +267,8 @@ function $readSegments(): Segment[] {
     $getRoot()
       .getAllTextNodes()
       .map((node) => ({
-        text: node.getTextContent(),
-        bold: node.hasFormat('bold'),
+        value: node.getTextContent(),
+        mark: node.hasFormat('bold'),
       })),
   );
 }
@@ -279,8 +279,8 @@ function $populateFromSegments(segments: Segment[]): void {
   root.clear();
   const paragraph = $createParagraphNode();
   for (const segment of segments) {
-    const node = $createTextNode(segment.text);
-    if (segment.bold) {
+    const node = $createTextNode(segment.value);
+    if (segment.mark) {
       node.setFormat('bold');
     }
     paragraph.append(node);

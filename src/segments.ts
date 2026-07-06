@@ -6,26 +6,52 @@
  * can be reasoned about and tested in isolation. The Lexical ⇄ segment bridge
  * lives in the editor component; here we only deal with plain data.
  */
-export type Segment = { text: string; bold: boolean };
+export type Segment = { value: string; mark: boolean };
 
 /**
  * Enforces the normalized shape the field promises to store:
- *   - segments with empty text are dropped, and
- *   - adjacent segments that share the same `bold` value are merged.
+ *   - segments with empty text are dropped,
+ *   - adjacent segments that share the same `mark` value are merged, and
+ *   - a lone single-space segment sitting between two segments that share the
+ *     *other* mark is absorbed into them.
  *
- * Both rules keep the stored array minimal and canonical, so a given rendered
+ * The last rule reflects that a space's mark is visually meaningless: e.g.
+ * `"jetzt"(mark) + " "(plain) + "mein"(mark)` should collapse into a single
+ * marked `"jetzt mein"` rather than three segments split by an unmarked space.
+ *
+ * These rules keep the stored array minimal and canonical, so a given rendered
  * text always serializes to exactly one array (stable round-trips, clean diffs).
  */
 export function normalizeSegments(segments: Segment[]): Segment[] {
-  const result: Segment[] = [];
-  for (const { text, bold } of segments) {
-    if (text.length === 0) continue;
-    const last = result[result.length - 1];
-    if (last && last.bold === bold) {
-      last.text += text;
+  // First pass: drop empty runs and merge adjacent runs that share a mark. This
+  // yields an array whose marks strictly alternate.
+  const merged: Segment[] = [];
+  for (const { value, mark } of segments) {
+    if (value.length === 0) continue;
+    const last = merged[merged.length - 1];
+    if (last && last.mark === mark) {
+      last.value += value;
     } else {
-      result.push({ text, bold });
+      merged.push({ value, mark });
     }
+  }
+
+  // Second pass: absorb a lone single-space run into the runs around it when
+  // those neighbors share a mark (guaranteed to be the opposite mark, since the
+  // marks alternate after the first pass). Absorbing keeps going so a chain like
+  // `mark " " mark " " mark` collapses into one run.
+  const result: Segment[] = [];
+  for (let i = 0; i < merged.length; i += 1) {
+    const current = { ...merged[i] };
+    while (
+      i + 2 < merged.length &&
+      merged[i + 1].value === ' ' &&
+      merged[i + 2].mark === current.mark
+    ) {
+      current.value += merged[i + 1].value + merged[i + 2].value;
+      i += 2;
+    }
+    result.push(current);
   }
   return result;
 }
@@ -55,10 +81,10 @@ export function parseFieldValue(rawValue: unknown): Segment[] {
 
   const segments: Segment[] = [];
   for (const item of parsed) {
-    if (item && typeof item === 'object' && 'text' in item) {
-      const { text, bold } = item as { text: unknown; bold: unknown };
-      if (typeof text === 'string') {
-        segments.push({ text, bold: bold === true });
+    if (item && typeof item === 'object' && 'value' in item) {
+      const { value, mark } = item as { value: unknown; mark: unknown };
+      if (typeof value === 'string') {
+        segments.push({ value, mark: mark === true });
       }
     }
   }

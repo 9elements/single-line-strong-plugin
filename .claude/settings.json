@@ -39,7 +39,11 @@
       "Bash(node -e 'const {$getRoot}=require\\('\\\\''lexical'\\\\''\\); const {createEditor}=require\\('\\\\''lexical'\\\\''\\); const e=createEditor\\({onError\\(x\\){throw x}}\\); e.update\\(\\(\\)=>{const r=$getRoot\\(\\); console.log\\('\\\\''getAllTextNodes'\\\\'', typeof r.getAllTextNodes\\)},{discrete:true}\\)')",
       "Bash(xargs cat)",
       "Bash(grep -rln 'function $restoreEditorState\\\\|restoreEditorState' node_modules/lexical/Lexical.d.ts)",
-      "Bash(node -p \"require\\('./node_modules/@lexical/selection/package.json'\\).version\")"
+      "Bash(node -p \"require\\('./node_modules/@lexical/selection/package.json'\\).version\")",
+      "Bash(curl -s https://single-line-strong-plugin.netlify.app/)",
+      "Bash(curl -s https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)",
+      "Bash(curl -sI https://single-line-strong-plugin.netlify.app/)",
+      "Bash(curl -sI https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)"
     ]
   }
 }
