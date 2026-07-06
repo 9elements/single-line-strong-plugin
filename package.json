@@ -22,5 +22,10 @@
     "@vitejs/plugin-react": "^6.0.3",
     "typescript": "^6.0.3",
     "vite": "^8.1.3"
+  },
+  "//overrides": "datocms-react-ui pulls react-intersection-observer@8, which caps React at ^18 and makes npm install a second, nested React 18 copy. Two React copies = null hook dispatcher (`Cannot read properties of null (reading 'useEffect')`). Force every dependency onto our single React 19.",
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
   }
 }
