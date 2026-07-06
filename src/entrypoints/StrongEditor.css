@@ -1,0 +1,77 @@
+/* Styling for the single-line strong editor. Colors reuse the DatoCMS design
+   tokens exposed by datocms-react-ui so the field blends in with native ones. */
+
+.sls-editor {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border-color, #cfcfd0);
+  border-radius: 3px;
+  background: var(--light-color, #fff);
+  overflow: hidden;
+}
+
+/* Focus ring on the whole control when the editable area is focused. */
+.sls-editor:focus-within {
+  border-color: var(--accent-color, #147efb);
+  box-shadow: 0 0 0 3px var(--semi-transparent-accent-color, rgba(20, 126, 251, 0.2));
+}
+
+.sls-editor[data-disabled='true'] {
+  background: var(--disabled-color, #f2f2f2);
+}
+
+/* The fixed "B" toggle button. */
+.sls-bold-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  border: none;
+  border-right: 1px solid var(--border-color, #cfcfd0);
+  background: transparent;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--light-body-color, #44484b);
+  cursor: pointer;
+}
+
+.sls-bold-btn:hover:not(:disabled) {
+  background: var(--light-color-hover, #f2f2f2);
+}
+
+/* Active = the current selection is bold. */
+.sls-bold-btn[aria-pressed='true'] {
+  background: var(--accent-color, #147efb);
+  color: #fff;
+}
+
+.sls-bold-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.sls-input-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sls-content {
+  padding: 8px 10px;
+  outline: none;
+  /* Single line: keep everything on one row and scroll horizontally rather
+     than wrapping (line breaks can never enter the document anyway). */
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: var(--light-body-color, #44484b);
+}
+
+/* The placeholder overlays the empty editable area. */
+.sls-placeholder {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  pointer-events: none;
+  user-select: none;
+  color: var(--placeholder-body-color, #8b8b8b);
+  white-space: nowrap;
+}

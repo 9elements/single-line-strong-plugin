@@ -11,8 +11,11 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@lexical/react": "^0.46.0",
+    "@lexical/utils": "^0.46.0",
     "datocms-plugin-sdk": "^2.2.5",
     "datocms-react-ui": "^2.2.5",
+    "lexical": "^0.46.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

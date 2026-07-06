@@ -6,13 +6,20 @@ full design.
 
 ## Status
 
-Walking skeleton (issue #1): scaffolded React + Vite + TypeScript plugin that
-registers a **manual field extension** on `json` fields and round-trips a raw
-value via `setFieldValue`. No bold / Lexical / segment-array logic yet.
+Bold editing (issue #3): a **Lexical** editor with **bold as the only mark**.
+A fixed "B" toolbar button and Cmd/Ctrl+B toggle bold on the selection (the
+button reflects the active state); Enter/Shift+Enter never insert a line break;
+paste is flattened to plain text (formatting stripped, newlines → spaces); bold
+renders visually (WYSIWYG). The editor state serializes to the **normalized
+segment array** stored on the `json` field — adjacent same-bold segments merged,
+no empty segments, and an empty field stored as `null` (see [SPEC.md](SPEC.md)).
+
+Still to come: per-field config screen + live counter / max-length (issue #4).
 
 ## Tech stack
 
-React 19 + Vite + TypeScript, using `datocms-plugin-sdk` + `datocms-react-ui`.
+React 19 + Vite + TypeScript, using `datocms-plugin-sdk` + `datocms-react-ui`,
+with [Lexical](https://lexical.dev) as the editor engine.
 
 ## Local development
 

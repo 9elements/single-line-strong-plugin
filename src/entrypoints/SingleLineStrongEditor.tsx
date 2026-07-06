@@ -1,67 +1,54 @@
-import { Canvas, TextField } from 'datocms-react-ui';
+import { useRef } from 'react';
+import { Canvas } from 'datocms-react-ui';
 import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
+
+import { parseFieldValue, serializeFieldValue, type Segment } from '../segments';
+import { StrongEditor } from './StrongEditor';
 
 type Props = {
   ctx: RenderFieldExtensionCtx;
 };
 
-/** The stored data contract (see SPEC.md): an array of text segments. */
-type Segment = { text: string; bold: boolean };
-
 /**
- * Walking-skeleton editor (issue #1), storing to a JSON field.
+ * The manual field extension: a single-line, bold-only text editor bound to a
+ * DatoCMS `json` field.
  *
- * A plain text input — no bold, no Lexical yet. Its only job is to prove the
- * end-to-end pipe: build → attach to a JSON field → value persists → GraphQL
- * returns it.
- *
- * A DatoCMS `json` field only accepts a **stringified object/array** (or `null`);
- * a top-level scalar like `"hello"` is rejected with `INVALID_FORMAT`. So even
- * the skeleton must serialize into the SPEC's segment-array shape — here a single
- * non-bold segment. Issue #3 swaps the plain input for a Lexical editor that
- * produces real multi-segment (bold) arrays on top of this same contract.
+ * The stored value is a normalized segment array (see SPEC.md). We parse it into
+ * the editor on mount and write it back — serialized, with `null` for empty — on
+ * every change. Actual editing (bold toggle, single-line enforcement, plain-text
+ * paste, WYSIWYG) lives in {@link StrongEditor}.
  */
 export function SingleLineStrongEditor({ ctx }: Props) {
-  const value = readText(ctx.formValues[ctx.fieldPath]);
+  const initialSegments = parseFieldValue(ctx.formValues[ctx.fieldPath]);
+  // Per-field placeholder comes from the extension's instance parameters
+  // (configured on the config screen built in issue #4).
+  const { placeholder } = ctx.parameters as { placeholder?: string };
+
+  // Track the last value we serialized so we can skip redundant writes. Seeded
+  // with the stored value so the editor's onChange-on-mount doesn't write the
+  // field back to itself; updated on every real change below. (Dato also
+  // re-renders us after each setFieldValue — this guard absorbs that too.)
+  const lastWritten = useRef<string | null>(serializeFieldValue(initialSegments));
+
+  const handleChange = (segments: Segment[]) => {
+    const value = serializeFieldValue(segments);
+    if (value === lastWritten.current) return;
+    lastWritten.current = value;
+    ctx.setFieldValue(ctx.fieldPath, value);
+  };
 
   return (
     <Canvas ctx={ctx}>
-      <TextField
-        id="single-line-strong-raw"
-        name="single-line-strong-raw"
+      <StrongEditor
+        // Remount when the field/locale changes so the stored value for the new
+        // locale is loaded as the editor's initial state.
+        key={ctx.fieldPath}
+        initialSegments={initialSegments}
+        onChange={handleChange}
         label={ctx.field.attributes.label}
-        value={value}
-        hint="Walking skeleton: plain text round-trip (no formatting yet)."
-        placeholder="Type here…"
-        onChange={(newValue) => {
-          // Empty → null so Dato `required`/"is empty" semantics stay clean.
-          // Otherwise store a single non-bold segment as stringified JSON.
-          const segments: Segment[] = [{ text: newValue, bold: false }];
-          ctx.setFieldValue(
-            ctx.fieldPath,
-            newValue === '' ? null : JSON.stringify(segments),
-          );
-        }}
+        placeholder={placeholder}
+        disabled={ctx.disabled}
       />
     </Canvas>
   );
-}
-
-/** Reads the stored segment array back into plain text (concatenates segments). */
-function readText(rawValue: unknown): string {
-  if (typeof rawValue !== 'string' || rawValue.length === 0) return '';
-  try {
-    const parsed: unknown = JSON.parse(rawValue);
-    if (!Array.isArray(parsed)) return '';
-    return parsed
-      .map((seg) =>
-        seg && typeof seg === 'object' && 'text' in seg
-          ? String((seg as Segment).text)
-          : '',
-      )
-      .join('');
-  } catch {
-    // Stored value isn't JSON we recognise — start from empty rather than crash.
-    return '';
-  }
 }
