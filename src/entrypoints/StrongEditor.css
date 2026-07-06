@@ -8,22 +8,27 @@
   border-radius: 3px;
   background: var(--light-color, #fff);
   overflow: hidden;
+
+  p {
+    margin: 0;
+  }
 }
 
 /* Focus ring on the whole control when the editable area is focused. */
 .sls-editor:focus-within {
   border-color: var(--accent-color, #147efb);
-  box-shadow: 0 0 0 3px var(--semi-transparent-accent-color, rgba(20, 126, 251, 0.2));
+  box-shadow: 0 0 0 3px
+    var(--semi-transparent-accent-color, rgba(20, 126, 251, 0.2));
 }
 
-.sls-editor[data-disabled='true'] {
+.sls-editor[data-disabled="true"] {
   background: var(--disabled-color, #f2f2f2);
 }
 
 /* The fixed "B" toggle button. */
 .sls-bold-btn {
   flex: 0 0 auto;
-  width: 34px;
+  width: 44px;
   border: none;
   border-right: 1px solid var(--border-color, #cfcfd0);
   background: transparent;
@@ -38,7 +43,7 @@
 }
 
 /* Active = the current selection is bold. */
-.sls-bold-btn[aria-pressed='true'] {
+.sls-bold-btn[aria-pressed="true"] {
   background: var(--accent-color, #147efb);
   color: #fff;
 }
