@@ -13,11 +13,18 @@ export type Segment = { value: string; mark: boolean };
  *   - segments with empty text are dropped,
  *   - adjacent segments that share the same `mark` value are merged, and
  *   - a lone single-space segment sitting between two segments that share the
- *     *other* mark is absorbed into them.
+ *     *other* mark is absorbed into them, and
+ *   - leading/trailing whitespace is trimmed off every segment.
  *
- * The last rule reflects that a space's mark is visually meaningless: e.g.
+ * The absorption rule reflects that a space's mark is visually meaningless: e.g.
  * `"jetzt"(mark) + " "(plain) + "mein"(mark)` should collapse into a single
  * marked `"jetzt mein"` rather than three segments split by an unmarked space.
+ * It runs *before* trimming precisely so that space becomes interior (and thus
+ * survives) rather than being dropped as edge whitespace.
+ *
+ * Trimming yields segments with no edge whitespace, which keeps the renderer
+ * simple. Note this drops whitespace that only lived at a segment boundary, so
+ * the concatenated text may lose spaces between differently-marked runs.
  *
  * These rules keep the stored array minimal and canonical, so a given rendered
  * text always serializes to exactly one array (stable round-trips, clean diffs).
@@ -40,7 +47,7 @@ export function normalizeSegments(segments: Segment[]): Segment[] {
   // those neighbors share a mark (guaranteed to be the opposite mark, since the
   // marks alternate after the first pass). Absorbing keeps going so a chain like
   // `mark " " mark " " mark` collapses into one run.
-  const result: Segment[] = [];
+  const absorbed: Segment[] = [];
   for (let i = 0; i < merged.length; i += 1) {
     const current = { ...merged[i] };
     while (
@@ -51,7 +58,22 @@ export function normalizeSegments(segments: Segment[]): Segment[] {
       current.value += merged[i + 1].value + merged[i + 2].value;
       i += 2;
     }
-    result.push(current);
+    absorbed.push(current);
+  }
+
+  // Third pass: trim edge whitespace off every segment, drop any that become
+  // empty, and re-merge runs that end up adjacent and share a mark (dropping a
+  // whitespace-only run between two same-mark runs can create such adjacency).
+  const result: Segment[] = [];
+  for (const { value, mark } of absorbed) {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) continue;
+    const last = result[result.length - 1];
+    if (last && last.mark === mark) {
+      last.value += trimmed;
+    } else {
+      result.push({ value: trimmed, mark });
+    }
   }
   return result;
 }
