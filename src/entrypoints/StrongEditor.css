@@ -72,8 +72,7 @@
   white-space: pre;
   overflow-x: auto;
   overflow-y: hidden;
-  color: var(--light-body-color, #44484b);
-  color: var(--color-ink, #444);
+  color: light-dark(#222, #ddd);
 }
 
 /* Live "X/Y" character counter, pinned to the right edge of the control. */
