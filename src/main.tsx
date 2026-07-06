@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import {
   connect,
   type ManualFieldExtensionsCtx,
@@ -12,10 +12,18 @@ import { SingleLineStrongEditor } from './entrypoints/SingleLineStrongEditor';
 // The manual field extension the editor picks as the JSON field's editor.
 const FIELD_EXTENSION_ID = 'singleLineStrong';
 
+// DatoCMS re-invokes the render hook whenever ctx changes (e.g. on every
+// keystroke, as the field value updates). Create the React root ONCE and
+// re-render into it so React reconciles the existing tree instead of
+// remounting it — otherwise the <input> is recreated each render and loses
+// focus after a single character.
+let root: Root | null = null;
+
 function render(component: React.ReactNode) {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>{component}</StrictMode>,
-  );
+  if (!root) {
+    root = createRoot(document.getElementById('root')!);
+  }
+  root.render(<StrictMode>{component}</StrictMode>);
 }
 
 connect({
