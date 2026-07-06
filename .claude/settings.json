@@ -43,7 +43,8 @@
       "Bash(curl -s https://single-line-strong-plugin.netlify.app/)",
       "Bash(curl -s https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)",
       "Bash(curl -sI https://single-line-strong-plugin.netlify.app/)",
-      "Bash(curl -sI https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)"
+      "Bash(curl -sI https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)",
+      "Bash(echo \"---exit $?---\")"
     ]
   }
 }

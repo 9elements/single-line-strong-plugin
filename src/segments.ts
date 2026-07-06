@@ -13,13 +13,21 @@ export type Segment = { value: string; mark: boolean };
  *   - segments with empty text are dropped,
  *   - adjacent segments that share the same `mark` value are merged, and
  *   - a lone single-space segment sitting between two segments that share the
- *     *other* mark is absorbed into them, and
+ *     *other* mark is absorbed into them,
+ *   - whitespace at the leading/trailing edge of a *marked* run is pushed out
+ *     onto the neighbouring unmarked run, and
  *   - leading whitespace is trimmed off the first segment and trailing
  *     whitespace off the last segment.
  *
  * The absorption rule reflects that a space's mark is visually meaningless: e.g.
  * `"jetzt"(mark) + " "(plain) + "mein"(mark)` should collapse into a single
  * marked `"jetzt mein"` rather than three segments split by an unmarked space.
+ *
+ * The edge-shift rule keeps marked runs tight so a bold word doesn't swallow the
+ * adjoining space: `"This is"(plain) + " Bold"(mark)` becomes
+ * `"This is "(plain) + "Bold"(mark)`, which renders `This is <strong>Bold</strong>`
+ * rather than `This is<strong> Bold</strong>`. Interior spaces inside a bold
+ * phrase (e.g. a bold `"two words"`) are untouched.
  *
  * Trimming touches only the two outer edges of the whole text, so interior
  * whitespace between differently-marked runs is preserved (the concatenated text
@@ -60,17 +68,42 @@ export function normalizeSegments(segments: Segment[]): Segment[] {
     absorbed.push(current);
   }
 
-  // Third pass: trim only the outer edges — leading whitespace off the first run
+  // Third pass: push whitespace out of the edges of marked runs onto their
+  // unmarked neighbours, so a bold run never begins or ends with a space (that
+  // space belongs visually to the surrounding plain text). Leading whitespace
+  // moves to the end of the previous run; trailing whitespace to the start of the
+  // next. Because marks strictly alternate here, that neighbour is always
+  // unmarked. Whitespace with no neighbour to receive it sits at the field edge
+  // and is handled by the trim pass below. Interior whitespace is left intact.
+  const shifted: Segment[] = absorbed.map((s) => ({ ...s }));
+  for (let i = 0; i < shifted.length; i += 1) {
+    const seg = shifted[i];
+    if (!seg.mark) continue;
+
+    const lead = seg.value.match(/^\s+/)?.[0] ?? '';
+    if (lead && i > 0) {
+      seg.value = seg.value.slice(lead.length);
+      shifted[i - 1].value += lead;
+    }
+
+    const trail = seg.value.match(/\s+$/)?.[0] ?? '';
+    if (trail && i < shifted.length - 1) {
+      seg.value = seg.value.slice(0, seg.value.length - trail.length);
+      shifted[i + 1].value = trail + shifted[i + 1].value;
+    }
+  }
+
+  // Fourth pass: trim only the outer edges — leading whitespace off the first run
   // and trailing whitespace off the last run — leaving interior whitespace
   // intact. Drop any run that becomes empty, and re-merge runs left adjacent with
   // the same mark (dropping an emptied edge run can create such adjacency).
   const result: Segment[] = [];
-  for (let i = 0; i < absorbed.length; i += 1) {
-    let value = absorbed[i].value;
+  for (let i = 0; i < shifted.length; i += 1) {
+    let value = shifted[i].value;
     if (i === 0) value = value.trimStart();
-    if (i === absorbed.length - 1) value = value.trimEnd();
+    if (i === shifted.length - 1) value = value.trimEnd();
     if (value.length === 0) continue;
-    const { mark } = absorbed[i];
+    const { mark } = shifted[i];
     const last = result[result.length - 1];
     if (last && last.mark === mark) {
       last.value += value;
