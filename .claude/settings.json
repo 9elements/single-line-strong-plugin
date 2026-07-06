@@ -21,7 +21,9 @@
       "Bash(pkill -f \"vite\")",
       "Bash(vercel --version)",
       "Bash(netlify --version)",
-      "Bash(npm ls *)"
+      "Bash(npm ls *)",
+      "Bash(git commit -q -m 'Add Netlify deploy config + document private-plugin deploy/registration *)",
+      "Bash(git push *)"
     ]
   }
 }
