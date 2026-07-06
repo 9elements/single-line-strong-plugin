@@ -7,6 +7,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
+import { $trimTextContentFromAnchor } from '@lexical/selection';
 import {
   $createParagraphNode,
   $createTextNode,
@@ -18,6 +19,7 @@ import {
   INSERT_LINE_BREAK_COMMAND,
   INSERT_PARAGRAPH_COMMAND,
   PASTE_COMMAND,
+  RootNode,
   type EditorState,
 } from 'lexical';
 
@@ -33,6 +35,12 @@ type Props = {
   label: string;
   /** Optional placeholder shown while the editor is empty. */
   placeholder?: string;
+  /**
+   * Optional cap on the visible-text length. When set, a live "X/Y" counter is
+   * shown and typing/paste beyond the limit is hard-blocked. Bold markup does
+   * not count toward the limit. Omitted (or non-positive) means no limit.
+   */
+  maxLength?: number;
   /** When true, the editor is read-only but still renders bold styling. */
   disabled?: boolean;
 };
@@ -51,8 +59,12 @@ export function StrongEditor({
   onChange,
   label,
   placeholder,
+  maxLength,
   disabled = false,
 }: Props) {
+  // A positive number enables the counter + input limit; anything else disables
+  // the feature entirely (graceful no-op when no max is configured).
+  const hasLimit = typeof maxLength === 'number' && maxLength > 0;
   const initialConfig = {
     namespace: 'single-line-strong',
     editable: !disabled,
@@ -93,9 +105,11 @@ export function StrongEditor({
             ErrorBoundary={LexicalErrorBoundary}
           />
         </div>
+        {hasLimit && <CharCounter maxLength={maxLength} />}
         <HistoryPlugin />
         <SingleLinePlugin />
         <PlainTextPastePlugin />
+        {hasLimit && <MaxLengthPlugin maxLength={maxLength} />}
         <EditableSyncPlugin editable={!disabled} />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
       </LexicalComposer>
@@ -195,6 +209,47 @@ function PlainTextPastePlugin() {
     );
   }, [editor]);
   return null;
+}
+
+/**
+ * Hard-blocks input once the visible text reaches `maxLength`. It runs as a
+ * `RootNode` transform — after every change Lexical re-runs it, so any edit that
+ * pushed the text over the cap (a keystroke, or a paste inserting many chars at
+ * once) is trimmed back from the caret in the same update. The user sees typing
+ * simply stop at the limit and pasted text truncated, never a value that exceeds
+ * it. Bold markup isn't text, so `getTextContentSize()` counts visible chars only.
+ */
+function MaxLengthPlugin({ maxLength }: { maxLength: number }) {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    return editor.registerNodeTransform(RootNode, (rootNode) => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection) || !selection.isCollapsed()) return;
+      const overflow = rootNode.getTextContentSize() - maxLength;
+      if (overflow > 0) {
+        $trimTextContentFromAnchor(editor, selection.anchor, overflow);
+      }
+    });
+  }, [editor, maxLength]);
+  return null;
+}
+
+/** Live "X/Y" counter of the visible-text length (bold markup excluded). */
+function CharCounter({ maxLength }: { maxLength: number }) {
+  const [editor] = useLexicalComposerContext();
+  const [count, setCount] = useState(() =>
+    editor.getEditorState().read(() => $getRoot().getTextContentSize()),
+  );
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => setCount($getRoot().getTextContentSize()));
+    });
+  }, [editor]);
+  return (
+    <div className="sls-counter" data-at-limit={count >= maxLength}>
+      {count}/{maxLength}
+    </div>
+  );
 }
 
 /** Keeps the editor's editable state in sync when the field is toggled read-only. */

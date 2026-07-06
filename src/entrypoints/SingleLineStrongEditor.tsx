@@ -4,6 +4,7 @@ import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
 
 import { parseFieldValue, serializeFieldValue, type Segment } from '../segments';
 import { StrongEditor } from './StrongEditor';
+import type { StrongEditorParameters } from './StrongEditorConfigScreen';
 
 type Props = {
   ctx: RenderFieldExtensionCtx;
@@ -20,9 +21,9 @@ type Props = {
  */
 export function SingleLineStrongEditor({ ctx }: Props) {
   const initialSegments = parseFieldValue(ctx.formValues[ctx.fieldPath]);
-  // Per-field placeholder comes from the extension's instance parameters
-  // (configured on the config screen built in issue #4).
-  const { placeholder } = ctx.parameters as { placeholder?: string };
+  // Per-field settings come from the extension's instance parameters, set on the
+  // config screen (see StrongEditorConfigScreen). `maxLength` is optional.
+  const { maxLength } = ctx.parameters as StrongEditorParameters;
 
   // Track the last value we serialized so we can skip redundant writes. Seeded
   // with the stored value so the editor's onChange-on-mount doesn't write the
@@ -46,7 +47,7 @@ export function SingleLineStrongEditor({ ctx }: Props) {
         initialSegments={initialSegments}
         onChange={handleChange}
         label={ctx.field.attributes.label}
-        placeholder={placeholder}
+        maxLength={maxLength}
         disabled={ctx.disabled}
       />
     </Canvas>

@@ -36,7 +36,10 @@
       "Bash(git commit -q -m 'Fix input focus loss: reuse a single React root across renders *)",
       "Bash(node -e 'const l=require\\('\\\\''lexical'\\\\''\\); ['\\\\''$getRoot'\\\\'','\\\\''$createParagraphNode'\\\\'','\\\\''$createTextNode'\\\\'','\\\\''$getSelection'\\\\'','\\\\''$isRangeSelection'\\\\'','\\\\''FORMAT_TEXT_COMMAND'\\\\'','\\\\''SELECTION_CHANGE_COMMAND'\\\\'','\\\\''INSERT_PARAGRAPH_COMMAND'\\\\'','\\\\''INSERT_LINE_BREAK_COMMAND'\\\\'','\\\\''PASTE_COMMAND'\\\\'','\\\\''COMMAND_PRIORITY_HIGH'\\\\'','\\\\''COMMAND_PRIORITY_CRITICAL'\\\\'','\\\\''KEY_ENTER_COMMAND'\\\\'','\\\\''TextNode'\\\\'','\\\\''ParagraphNode'\\\\''].forEach\\(k=>console.log\\(k, typeof l[k]\\)\\)')",
       "Bash(node -e \"const p=require\\('./node_modules/@lexical/react/package.json'\\); console.log\\(Object.keys\\(p.exports\\).filter\\(k=>/OnChange|ErrorBoundary|History|Composer|RichText|ContentEditable/i.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")",
-      "Bash(node -e 'const {$getRoot}=require\\('\\\\''lexical'\\\\''\\); const {createEditor}=require\\('\\\\''lexical'\\\\''\\); const e=createEditor\\({onError\\(x\\){throw x}}\\); e.update\\(\\(\\)=>{const r=$getRoot\\(\\); console.log\\('\\\\''getAllTextNodes'\\\\'', typeof r.getAllTextNodes\\)},{discrete:true}\\)')"
+      "Bash(node -e 'const {$getRoot}=require\\('\\\\''lexical'\\\\''\\); const {createEditor}=require\\('\\\\''lexical'\\\\''\\); const e=createEditor\\({onError\\(x\\){throw x}}\\); e.update\\(\\(\\)=>{const r=$getRoot\\(\\); console.log\\('\\\\''getAllTextNodes'\\\\'', typeof r.getAllTextNodes\\)},{discrete:true}\\)')",
+      "Bash(xargs cat)",
+      "Bash(grep -rln 'function $restoreEditorState\\\\|restoreEditorState' node_modules/lexical/Lexical.d.ts)",
+      "Bash(node -p \"require\\('./node_modules/@lexical/selection/package.json'\\).version\")"
     ]
   }
 }

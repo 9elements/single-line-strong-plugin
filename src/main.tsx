@@ -4,10 +4,12 @@ import {
   connect,
   type ManualFieldExtensionsCtx,
   type RenderFieldExtensionCtx,
+  type RenderManualFieldExtensionConfigScreenCtx,
 } from 'datocms-plugin-sdk';
 import 'datocms-react-ui/styles.css';
 
 import { SingleLineStrongEditor } from './entrypoints/SingleLineStrongEditor';
+import { StrongEditorConfigScreen } from './entrypoints/StrongEditorConfigScreen';
 
 // The manual field extension the editor picks as the JSON field's editor.
 const FIELD_EXTENSION_ID = 'singleLineStrong';
@@ -35,12 +37,22 @@ connect({
         type: 'editor',
         // Restricts the extension so it can only be attached to JSON fields.
         fieldTypes: ['json'],
+        // Enables the per-field config screen (renderManualFieldExtensionConfigScreen).
+        configurable: true,
       },
     ];
   },
   renderFieldExtension(fieldExtensionId, ctx: RenderFieldExtensionCtx) {
     if (fieldExtensionId === FIELD_EXTENSION_ID) {
       render(<SingleLineStrongEditor ctx={ctx} />);
+    }
+  },
+  renderManualFieldExtensionConfigScreen(
+    fieldExtensionId,
+    ctx: RenderManualFieldExtensionConfigScreenCtx,
+  ) {
+    if (fieldExtensionId === FIELD_EXTENSION_ID) {
+      render(<StrongEditorConfigScreen ctx={ctx} />);
     }
   },
 });

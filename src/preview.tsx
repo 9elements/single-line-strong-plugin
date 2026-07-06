@@ -63,6 +63,15 @@ function Demo() {
         />
       </Row>
 
+      <Row title="With a 30-character limit (counter + hard block)">
+        <StrongEditor
+          initialSegments={SAMPLE}
+          onChange={() => {}}
+          label="Limited"
+          maxLength={30}
+        />
+      </Row>
+
       <Row title="Disabled (read-only, bold still visible)">
         <StrongEditor
           initialSegments={SAMPLE}
