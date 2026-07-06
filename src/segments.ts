@@ -114,17 +114,33 @@ export function normalizeSegments(segments: Segment[]): Segment[] {
   return result;
 }
 
+/** The stored object shape: the segment array plus a plain-text mirror. */
+export type FieldValue = { segments: Segment[]; raw: string };
+
+/**
+ * The plain-text projection of a segment array: every segment's text
+ * concatenated, with all marks dropped. Since the input is normalized, this is
+ * already edge-trimmed with canonical interior spacing — usable as-is for slugs,
+ * meta tags, or anywhere the marked-up structure isn't wanted.
+ */
+export function rawText(segments: Segment[]): string {
+  return segments.map((s) => s.value).join('');
+}
+
 /**
  * Serializes segments into the value stored on the DatoCMS `json` field.
  *
  * An empty field stores `null` (not `[]`) so Dato's `required` validation and
- * "is empty" filters behave cleanly. A non-empty field stores the normalized
- * array as a JSON *string* — a `json` field rejects a top-level scalar but
+ * "is empty" filters behave cleanly. A non-empty field stores an object with the
+ * normalized `segments` array plus a `raw` plain-text mirror (see {@link rawText}),
+ * serialized as a JSON *string* — a `json` field rejects a top-level scalar but
  * accepts a stringified object/array (see the plugin gotchas note).
  */
 export function serializeFieldValue(segments: Segment[]): string | null {
   const normalized = normalizeSegments(segments);
-  return normalized.length === 0 ? null : JSON.stringify(normalized);
+  if (normalized.length === 0) return null;
+  const value: FieldValue = { segments: normalized, raw: rawText(normalized) };
+  return JSON.stringify(value);
 }
 
 /**
@@ -150,15 +166,31 @@ export function parseFieldValue(rawValue: unknown): Segment[] {
 }
 
 /**
- * Dato hands JSON fields back as a stringified value, but be liberal: accept an
- * already-parsed array too. Anything else (null, object, malformed JSON) → null.
+ * Dato hands JSON fields back as a stringified value, but be liberal about what
+ * we accept and about how deeply parsed it already is:
+ *   - the current shape: an object `{ segments: [...], raw }` (the `raw` mirror is
+ *     re-derived on write, so we read only `segments`),
+ *   - a bare array `[...]` — the legacy shape stored before `raw` was added,
+ * either as a JSON string or already parsed. Anything else → null.
  */
 function coerceToArray(rawValue: unknown): unknown[] | null {
-  if (Array.isArray(rawValue)) return rawValue;
-  if (typeof rawValue !== 'string' || rawValue.length === 0) return null;
+  const parsed =
+    typeof rawValue === 'string'
+      ? tryParseJson(rawValue)
+      : rawValue;
+
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed && typeof parsed === 'object' && 'segments' in parsed) {
+    const { segments } = parsed as { segments: unknown };
+    return Array.isArray(segments) ? segments : null;
+  }
+  return null;
+}
+
+function tryParseJson(value: string): unknown {
+  if (value.length === 0) return null;
   try {
-    const parsed: unknown = JSON.parse(rawValue);
-    return Array.isArray(parsed) ? parsed : null;
+    return JSON.parse(value);
   } catch {
     return null;
   }

@@ -44,7 +44,9 @@
       "Bash(curl -s https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)",
       "Bash(curl -sI https://single-line-strong-plugin.netlify.app/)",
       "Bash(curl -sI https://single-line-strong-plugin.netlify.app/assets/index-DpVYz0H3.js)",
-      "Bash(echo \"---exit $?---\")"
+      "Bash(echo \"---exit $?---\")",
+      "Bash(grep -rln \"mark\\\\|segment\\\\|strong\" /Users/nilsbinder/development/9elements/duisburg-business-website/src 2>/dev/null | head; echo \"---\"; grep -rn \"\\\\.raw\\\\|\\\\.segments\\\\|\\\\.value\" /Users/nilsbinder/development/9elements/duisburg-business-website/src 2>/dev/null | grep -i \"mark\\\\|segment\\\\|title\" | head)",
+      "Read(//Users/nilsbinder/development/9elements/duisburg-business-website/src/**)"
     ]
   }
 }
