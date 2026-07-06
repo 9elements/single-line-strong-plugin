@@ -21,7 +21,19 @@
       "Bash(pkill -f \"vite\")",
       "Bash(vercel --version)",
       "Bash(netlify --version)",
-      "Bash(npm ls *)"
+      "Bash(npm ls *)",
+      "Bash(git commit -q -m 'Add Netlify deploy config + document private-plugin deploy/registration *)",
+      "Bash(git push *)",
+      "Bash(curl -sI https://single-line-strong-plugin.netlify.app/assets/index-DQNx_dYZ.js)",
+      "Bash(read f *)",
+      "Bash(python3 -c 'import json;print\\(json.load\\(open\\('\\\\''__TRACKED_VAR__'\\\\''\\)\\)['\\\\''version'\\\\'']\\)')",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('node_modules/datocms-react-ui/package.json'\\)\\);print\\('peer:',d.get\\('peerDependencies'\\)\\);print\\('deps:',d.get\\('dependencies',{}\\).get\\('react'\\),d.get\\('dependencies',{}\\).get\\('react-dom'\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('node_modules/datocms-plugin-sdk/package.json'\\)\\);print\\('peer:',d.get\\('peerDependencies'\\)\\);print\\('deps react:',d.get\\('dependencies',{}\\).get\\('react'\\)\\)\")",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('node_modules/datocms-react-ui/package.json'\\)\\);print\\('version',d['version']\\);[print\\(k,':',d.get\\(k\\)\\) for k in ['peerDependencies','dependencies']]\")",
+      "Bash(python3 -c ' *)",
+      "Bash(git commit -q -m 'Fix null-dispatcher crash: force a single React 19 copy *)",
+      "Bash(git commit -q -m 'Fix 422 on save: serialize editor value as stringified JSON *)",
+      "Bash(git commit -q -m 'Fix input focus loss: reuse a single React root across renders *)"
     ]
   }
 }
