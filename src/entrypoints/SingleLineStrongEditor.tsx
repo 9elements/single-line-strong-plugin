@@ -37,8 +37,41 @@ export function SingleLineStrongEditor({ ctx }: Props) {
     ctx.setFieldValue(ctx.fieldPath, value);
   };
 
+  // TEMP DEBUG: surface what the component actually receives so we can see, from
+  // a screenshot, whether the stored value reaches us and parses. Remove once the
+  // empty-on-reopen bug is diagnosed.
+  const rawValue = ctx.formValues[ctx.fieldPath];
+  const debug = {
+    fieldPath: ctx.fieldPath,
+    rawType: typeof rawValue,
+    raw: JSON.stringify(rawValue)?.slice(0, 300) ?? String(rawValue),
+    parsedCount: initialSegments.length,
+    parsed: JSON.stringify(initialSegments).slice(0, 300),
+  };
+  // eslint-disable-next-line no-console
+  console.log('[sls debug]', debug);
+
   return (
     <Canvas ctx={ctx}>
+      <pre
+        style={{
+          fontSize: 11,
+          background: '#fee',
+          color: '#900',
+          padding: 8,
+          margin: '0 0 8px',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+          border: '1px solid #c99',
+          borderRadius: 4,
+        }}
+      >
+        {`fieldPath: ${debug.fieldPath}
+rawType: ${debug.rawType}
+raw: ${debug.raw}
+parsedCount: ${debug.parsedCount}
+parsed: ${debug.parsed}`}
+      </pre>
       <StrongEditor
         // Remount when the field/locale changes so the stored value for the new
         // locale is loaded as the editor's initial state.
