@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { Canvas } from 'datocms-react-ui';
 import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
 
@@ -25,16 +24,16 @@ export function SingleLineStrongEditor({ ctx }: Props) {
   // config screen (see StrongEditorConfigScreen). `maxLength` is optional.
   const { maxLength } = ctx.parameters as StrongEditorParameters;
 
-  // Track the last value we serialized so we can skip redundant writes. Seeded
-  // with the stored value so the editor's onChange-on-mount doesn't write the
-  // field back to itself; updated on every real change below. (Dato also
-  // re-renders us after each setFieldValue — this guard absorbs that too.)
-  const lastWritten = useRef<string | null>(serializeFieldValue(initialSegments));
-
   const handleChange = (segments: Segment[]) => {
     const value = serializeFieldValue(segments);
-    if (value === lastWritten.current) return;
-    lastWritten.current = value;
+    // Skip writing back a value equal to what's already stored. This absorbs the
+    // editor's onChange-on-mount, Dato's re-render after each setFieldValue, and
+    // the reconciliation write when a late-arriving stored value is adopted into
+    // the editor (see ExternalValueSyncPlugin) — none of which should mark the
+    // record dirty. Comparing the round-tripped current value keeps the check
+    // canonical regardless of how Dato hands the stored value back.
+    const current = serializeFieldValue(parseFieldValue(ctx.formValues[ctx.fieldPath]));
+    if (value === current) return;
     ctx.setFieldValue(ctx.fieldPath, value);
   };
 

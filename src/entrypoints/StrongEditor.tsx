@@ -111,6 +111,7 @@ export function StrongEditor({
         <PlainTextPastePlugin />
         {hasLimit && <MaxLengthPlugin maxLength={maxLength} />}
         <EditableSyncPlugin editable={!disabled} />
+        <ExternalValueSyncPlugin segments={initialSegments} />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
       </LexicalComposer>
     </div>
@@ -250,6 +251,34 @@ function CharCounter({ maxLength }: { maxLength: number }) {
       {count}/{maxLength}
     </div>
   );
+}
+
+/**
+ * Reconciles a late-arriving or externally-changed stored value into the editor.
+ *
+ * Lexical reads `initialConfig.editorState` only once, at mount. In DatoCMS the
+ * field value is frequently hydrated *after* the extension iframe has mounted
+ * (notably when reopening a record), so without this the editor would stay empty
+ * even though the stored value loaded a tick later. This plugin watches the
+ * incoming segments and, whenever they differ from what the editor currently
+ * holds, repopulates it. Comparing against the editor's *own* content means our
+ * own edits — which loop back in through `formValues` — are seen as
+ * already-applied and skipped, so the caret is never disturbed while typing.
+ */
+function ExternalValueSyncPlugin({ segments }: { segments: Segment[] }) {
+  const [editor] = useLexicalComposerContext();
+  // A stable, comparable projection of the incoming value; also the effect key so
+  // the reconciliation runs only when the stored value actually changes.
+  const incoming = JSON.stringify(normalizeSegments(segments));
+  useEffect(() => {
+    const target: Segment[] = JSON.parse(incoming);
+    const current = editor
+      .getEditorState()
+      .read(() => JSON.stringify($readSegments()));
+    if (current === incoming) return;
+    editor.update(() => $populateFromSegments(target));
+  }, [editor, incoming]);
+  return null;
 }
 
 /** Keeps the editor's editable state in sync when the field is toggled read-only. */
