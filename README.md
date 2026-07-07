@@ -4,18 +4,6 @@ A DatoCMS manual field extension that turns a JSON field into a single-line text
 editor where selected text can be made **bold**. See [SPEC.md](SPEC.md) for the
 full design.
 
-## Status
-
-Bold editing (issue #3): a **Lexical** editor with **bold as the only mark**.
-A fixed "B" toolbar button and Cmd/Ctrl+B toggle bold on the selection (the
-button reflects the active state); Enter/Shift+Enter never insert a line break;
-paste is flattened to plain text (formatting stripped, newlines → spaces); bold
-renders visually (WYSIWYG). The editor state serializes to the **normalized
-segment array** stored on the `json` field — adjacent same-bold segments merged,
-no empty segments, and an empty field stored as `null` (see [SPEC.md](SPEC.md)).
-
-Still to come: per-field config screen + live counter / max-length (issue #4).
-
 ## Tech stack
 
 React 19 + Vite + TypeScript, using `datocms-plugin-sdk` + `datocms-react-ui`,
@@ -41,11 +29,37 @@ npm run build    # typecheck (tsc -b) + production build into dist/
 4. Edit a record: type in the field, save, and confirm the value persists and is
    restored on reload (and returned verbatim by the GraphQL API).
 
+## Publish to the DatoCMS Marketplace
+
+For a public, one-click-installable listing, DatoCMS serves the plugin's built
+assets straight out of the **published npm package** — the Netlify host below is
+not involved in the marketplace flow.
+
+Requirements (already configured in [`package.json`](package.json)):
+
+- `name` prefixed with `datocms-plugin-`
+- `keywords` includes `datocms-plugin`
+- a `datoCmsPlugin` block with `title`, `entryPoint` (`dist/index.html`) and
+  `permissions`
+- `files: ["dist"]` (plus a [`.npmignore`](.npmignore)) so the built plugin ships
+  in the tarball; `prepublishOnly` rebuilds `dist/` before every publish
+
+Publish with a public npm package:
+
+```bash
+npm publish        # runs prepublishOnly → npm run build first
+```
+
+DatoCMS scans npm for the `datocms-plugin` keyword and adds the plugin to the
+Marketplace automatically, usually within an hour. Optionally add
+`datoCmsPlugin.previewImage` / `coverImage` (relative paths that must exist in the
+package) to enrich the listing.
+
 ## Deploy + register as a private plugin (production)
 
-The plugin is a static build hosted on **Netlify** and registered in the target
-Dato project by URL. There is no public marketplace listing — it stays private to
-the project it's registered in.
+Alternatively, keep the plugin private to a single project: host the static build
+on **Netlify** and register it in the target Dato project by URL — no marketplace
+listing.
 
 ### 1. Deploy to Netlify
 

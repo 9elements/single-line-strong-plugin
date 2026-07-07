@@ -1,0 +1,85 @@
+/* Preview-only token fixture — NOT shipped to DatoCMS.
+ *
+ * Inside DatoCMS the semantic `--color--*` tokens are injected onto the
+ * <Canvas> at runtime from `ctx.cssDesignTokens` (see datocms-react-ui's
+ * generateStyleFromCtx). `datocms-react-ui/styles.css` only *references* them,
+ * it never defines them — so in the standalone preview (which has no ctx and
+ * no <Canvas>) they'd all resolve to nothing and StrongEditor.css would render
+ * uncolored. This file supplies stand-in values so the harness looks right.
+ *
+ * These are hand-tuned approximations of Dato's palette for local iteration
+ * only; the real values come from the host and may differ slightly. The runtime
+ * sets [data-color-scheme] on <html>; we mirror that so the dark block below
+ * matches how dark mode actually switches in production. */
+
+:root {
+  --color--surface: #ffffff;
+  --color--surface-hover: #f5f5f6;
+  --color--surface-muted: #f2f2f2;
+  --color--surface-raised: #ffffff;
+
+  --color--ink: #1a1a1a;
+  --color--ink-subtle: #44484b;
+  --color--ink-muted: #6b6f73;
+  --color--ink-placeholder: #8b8b8b;
+  --color--ink-danger: #eb5757;
+  --color--ink-warning: #e0a90a;
+  --color--ink-success: #27ae60;
+  --color--ink-link: #147efb;
+
+  --color--border: #cfcfd0;
+  --color--border-hover: #b0b0b1;
+
+  --color--focus--border: #147efb;
+  --color--focus--outline: rgba(20, 126, 251, 0.2);
+
+  --color--disabled--surface: #f2f2f2;
+  --color--disabled--ink: #a5a5a5;
+
+  --color--primary--surface: #147efb;
+  --color--primary--surface-hover: #0e6fe0;
+  --color--primary--surface-active: #0c63c7;
+  --color--primary--ink: #ffffff;
+
+  --color--primary-soft--surface: #e7f1ff;
+  --color--primary-soft--ink: #147efb;
+}
+
+[data-color-scheme='dark'] {
+  --color--surface: #202225;
+  --color--surface-hover: #2a2c2f;
+  --color--surface-muted: #26282b;
+  --color--surface-raised: #2a2c2f;
+
+  --color--ink: #e6e6e7;
+  --color--ink-subtle: #b5b8bb;
+  --color--ink-muted: #8b8f93;
+  --color--ink-placeholder: #71767a;
+  --color--ink-danger: #ff6b6b;
+  --color--ink-warning: #f2c14e;
+  --color--ink-success: #4cd07d;
+  --color--ink-link: #4a9bff;
+
+  --color--border: #3a3d41;
+  --color--border-hover: #55595e;
+
+  --color--focus--border: #4a9bff;
+  --color--focus--outline: rgba(74, 155, 255, 0.3);
+
+  --color--disabled--surface: #2a2c2f;
+  --color--disabled--ink: #5f6367;
+
+  --color--primary--surface: #147efb;
+  --color--primary--surface-hover: #3a92fc;
+  --color--primary--surface-active: #4a9bff;
+  --color--primary--ink: #ffffff;
+
+  --color--primary-soft--surface: #1c3a5e;
+  --color--primary-soft--ink: #7ab5ff;
+}
+
+/* Make the harness page itself follow the theme too, not just the editor. */
+:root {
+  background: var(--color--surface);
+  color: var(--color--ink);
+}

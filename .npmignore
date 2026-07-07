@@ -1,0 +1,6 @@
+# The published package ships ONLY the built plugin (see "files" in package.json).
+# This file exists so npm does NOT fall back to .gitignore, which ignores dist/
+# and would otherwise strip the build from the tarball.
+#
+# Source, config and tooling are excluded via the "files" allowlist in
+# package.json; dist/ is the plugin entry point DatoCMS serves.

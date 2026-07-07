@@ -11,6 +11,10 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import 'datocms-react-ui/styles.css';
+// Supplies the semantic --color--* tokens the host would normally inject, so
+// the standalone harness renders with real colors. Must come after the SDK
+// stylesheet. See preview-tokens.css.
+import './preview-tokens.css';
 
 import { StrongEditor } from './entrypoints/StrongEditor';
 import { serializeFieldValue, type Segment } from './segments';
@@ -24,7 +28,7 @@ const SAMPLE: Segment[] = [
 function Row({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 32 }}>
-      <h2 style={{ font: '600 13px/1.4 system-ui', color: '#666', margin: '0 0 8px' }}>
+      <h2 style={{ font: '600 13px/1.4 system-ui', color: 'var(--color--ink-muted)', margin: '0 0 8px' }}>
         {title}
       </h2>
       {children}
@@ -34,13 +38,39 @@ function Row({ title, children }: { title: string; children: React.ReactNode }) 
 
 function Demo() {
   const [value, setValue] = useState<string | null>(serializeFieldValue(SAMPLE));
+  const [dark, setDark] = useState(false);
+
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    // Mirror how the DatoCMS runtime switches themes: an attribute on <html>.
+    document.documentElement.dataset.colorScheme = next ? 'dark' : 'light';
+  };
 
   return (
     <div style={{ maxWidth: 640, margin: '40px auto', padding: '0 24px', font: '14px/1.5 system-ui' }}>
-      <h1 style={{ font: '700 20px/1.3 system-ui' }}>Single-line Strong — preview</h1>
-      <p style={{ color: '#888' }}>
-        Standalone harness for styling. Not the real Dato environment — colors use
-        CSS-var fallbacks, so exact theme tokens will differ inside DatoCMS.
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 }}>
+        <h1 style={{ font: '700 20px/1.3 system-ui' }}>Single-line Strong — preview</h1>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          style={{
+            font: '500 13px/1 system-ui',
+            padding: '8px 12px',
+            cursor: 'pointer',
+            border: '1px solid var(--color--border)',
+            borderRadius: 4,
+            background: 'var(--color--surface-hover)',
+            color: 'var(--color--ink)',
+          }}
+        >
+          {dark ? '☀ Light' : '☾ Dark'}
+        </button>
+      </div>
+      <p style={{ color: 'var(--color--ink-muted)' }}>
+        Standalone harness for styling. Colors use stand-in --color--* tokens
+        (see preview-tokens.css); exact values differ inside DatoCMS, which
+        injects them at runtime. Use the toggle to check light and dark.
       </p>
 
       <Row title="Editable, prefilled with a bold range">
@@ -49,7 +79,7 @@ function Demo() {
           onChange={(segments) => setValue(serializeFieldValue(segments))}
           label="Headline"
         />
-        <pre style={{ background: '#f5f5f5', padding: 10, marginTop: 8, borderRadius: 4, fontSize: 12, overflowX: 'auto' }}>
+        <pre style={{ background: 'var(--color--surface-muted)', color: 'var(--color--ink-subtle)', padding: 10, marginTop: 8, borderRadius: 4, fontSize: 12, overflowX: 'auto' }}>
           {value ?? 'null'}
         </pre>
       </Row>

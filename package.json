@@ -1,14 +1,28 @@
 {
-  "name": "single-line-strong-plugin",
-  "private": true,
+  "name": "datocms-plugin-single-line-strong",
   "version": "0.1.0",
   "type": "module",
   "description": "DatoCMS manual field extension: single-line text editor with a bold mark, stored as a segment array on a JSON field.",
+  "homepage": "https://github.com/9elements/single-line-strong-plugin",
+  "keywords": [
+    "datocms",
+    "datocms-plugin",
+    "field-editor"
+  ],
+  "files": [
+    "dist"
+  ],
+  "datoCmsPlugin": {
+    "title": "Single-line strong",
+    "entryPoint": "dist/index.html",
+    "permissions": []
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@lexical/react": "^0.46.0",
