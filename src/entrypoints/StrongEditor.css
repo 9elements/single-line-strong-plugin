@@ -1,12 +1,19 @@
-/* Styling for the single-line strong editor. Colors reuse the DatoCMS design
-   tokens exposed by datocms-react-ui so the field blends in with native ones. */
+/* Styling for the single-line strong editor. Everything is driven by the
+   DatoCMS design tokens (the --color--* / --font-* / --*-ease custom
+   properties injected by <Canvas>), so the field matches native TextInputs
+   and adapts to light/dark automatically — the runtime flips the token values
+   based on [data-color-scheme] on <html>. No hardcoded colors: that would
+   pin us to one theme. Values mirror datocms-react-ui's own TextInput. */
 
 .sls-editor {
   display: flex;
   align-items: stretch;
-  border: 1px solid var(--border-color, #cfcfd0);
-  border-radius: 3px;
-  background: var(--light-color, #fff);
+  box-sizing: border-box;
+  border: 1px solid var(--color--border);
+  background-color: var(--color--surface);
+  color: var(--color--ink);
+  font-size: var(--font-size-m);
+  transition: border 0.2s var(--material-ease);
   overflow: hidden;
 
   p {
@@ -14,15 +21,21 @@
   }
 }
 
-/* Focus ring on the whole control when the editable area is focused. */
+.sls-editor:hover:not([data-disabled="true"]) {
+  border-color: var(--color--border-hover);
+}
+
+/* Focus ring on the whole control when the editable area is focused —
+   same border + outline treatment as a native TextInput. */
 .sls-editor:focus-within {
-  border-color: var(--accent-color, #147efb);
-  box-shadow: 0 0 0 3px
-    var(--semi-transparent-accent-color, rgba(20, 126, 251, 0.2));
+  border-color: var(--color--focus--border);
+  box-shadow: 0 0 0 4px var(--color--focus--outline);
 }
 
 .sls-editor[data-disabled="true"] {
-  background: var(--disabled-color, #f2f2f2);
+  color: var(--color--disabled--ink);
+  border-color: var(--color--border);
+  background: var(--color--disabled--surface);
 }
 
 /* The fixed "B" toggle button. */
@@ -30,49 +43,55 @@
   flex: 0 0 auto;
   width: 44px;
   border: none;
-  border-right: 1px solid var(--border-color, #cfcfd0);
+  border-right: 1px solid var(--color--border);
   background: transparent;
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--light-body-color, #44484b);
+  font-family: inherit;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-m);
+  color: var(--color--ink-subtle);
   cursor: pointer;
+  transition: background-color 0.2s var(--material-ease),
+    color 0.2s var(--material-ease);
 }
 
 .sls-bold-btn:hover:not(:disabled) {
-  background: var(--light-color-hover, #f2f2f2);
+  background: var(--color--surface-hover);
+  color: var(--color--ink);
 }
 
-/* Active = the current selection is bold. */
+/* Active = the current selection is bold. Mirrors the primary Button. */
 .sls-bold-btn[aria-pressed="true"] {
-  background: var(--accent-color, #147efb);
-  color: #fff;
+  background: var(--color--primary--surface);
+  color: var(--color--primary--ink);
 
-  &:hover {
-    background: color-mix(in srgb, var(--accent-color, #147efb) 90%, #000);
+  &:hover:not(:disabled) {
+    background: var(--color--primary--surface-hover);
+    color: var(--color--primary--ink);
   }
 }
 
 .sls-bold-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  color: var(--color--disabled--ink);
+  opacity: 0.6;
 }
 
 .sls-input-wrap {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  background: var(--color--surface-raised, #fff);
+  background: var(--color--surface);
 }
 
 .sls-content {
-  padding: 8px 10px;
+  padding: 10px;
   outline: none;
+  color: var(--color--ink);
   /* Single line: keep everything on one row and scroll horizontally rather
      than wrapping (line breaks can never enter the document anyway). */
   white-space: pre;
   overflow-x: auto;
   overflow-y: hidden;
-  color: light-dark(#222, #ddd);
 }
 
 /* Live "X/Y" character counter, pinned to the right edge of the control. */
@@ -80,26 +99,26 @@
   flex: 0 0 auto;
   align-self: center;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: var(--font-size-s);
   font-variant-numeric: tabular-nums;
-  color: var(--placeholder-body-color, #8b8b8b);
+  color: var(--color--ink-placeholder);
   white-space: nowrap;
   user-select: none;
 }
 
-/* At the limit the counter turns red to signal input is blocked. */
+/* At the limit the counter turns to the danger ink to signal input is blocked. */
 .sls-counter[data-at-limit="true"] {
-  color: var(--alert-color, #eb5757);
-  font-weight: 600;
+  color: var(--color--ink-danger);
+  font-weight: var(--font-weight-bold);
 }
 
 /* The placeholder overlays the empty editable area. */
 .sls-placeholder {
   position: absolute;
-  top: 8px;
+  top: 10px;
   left: 10px;
   pointer-events: none;
   user-select: none;
-  color: var(--placeholder-body-color, #8b8b8b);
+  color: var(--color--ink-placeholder);
   white-space: nowrap;
 }
