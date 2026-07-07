@@ -49,7 +49,8 @@
       "Read(//Users/nilsbinder/development/9elements/duisburg-business-website/src/**)",
       "WebFetch(domain:www.datocms.com)",
       "Bash(sed 's/\\\\s*:$//')",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(git commit -q -m 'Fix empty value for nested block fields: traverse fieldPath dot-path *)"
     ]
   }
 }
