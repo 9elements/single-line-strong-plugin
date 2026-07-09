@@ -97,6 +97,10 @@
   white-space: pre;
   overflow-x: auto;
   overflow-y: hidden;
+
+  span {
+    opacity: 0.8;
+  }
 }
 
 /* Live "X/Y" character counter, pinned to the right edge of the control. */
