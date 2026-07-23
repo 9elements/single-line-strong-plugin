@@ -9,8 +9,6 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { mergeRegister } from '@lexical/utils';
 import { $trimTextContentFromAnchor } from '@lexical/selection';
 import {
-  $createParagraphNode,
-  $createTextNode,
   $getRoot,
   $getSelection,
   $isRangeSelection,
@@ -24,6 +22,7 @@ import {
 } from 'lexical';
 
 import { normalizeSegments, type Segment } from '../segments';
+import { $populateFromSegments, $readSegments } from '../segment-bridge';
 import './StrongEditor.css';
 
 type Props = {
@@ -295,31 +294,4 @@ function EditableSyncPlugin({ editable }: { editable: boolean }) {
     editor.setEditable(editable);
   }, [editor, editable]);
   return null;
-}
-
-/** Reads the current editor content into normalized segments. Call inside `read`. */
-function $readSegments(): Segment[] {
-  return normalizeSegments(
-    $getRoot()
-      .getAllTextNodes()
-      .map((node) => ({
-        value: node.getTextContent(),
-        mark: node.hasFormat('bold'),
-      })),
-  );
-}
-
-/** Builds the initial editor state from segments. Call inside an `update`. */
-function $populateFromSegments(segments: Segment[]): void {
-  const root = $getRoot();
-  root.clear();
-  const paragraph = $createParagraphNode();
-  for (const segment of segments) {
-    const node = $createTextNode(segment.value);
-    if (segment.mark) {
-      node.setFormat('bold');
-    }
-    paragraph.append(node);
-  }
-  root.append(paragraph);
 }

@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./src/preview.tsx","./src/segments.ts","./src/vite-env.d.ts","./src/entrypoints/singlelinestrongeditor.tsx","./src/entrypoints/strongeditor.tsx","./src/entrypoints/strongeditorconfigscreen.tsx"],"version":"6.0.3"}
+{"root":["./src/main.tsx","./src/preview.tsx","./src/segment-bridge.test.ts","./src/segment-bridge.ts","./src/segments.test.ts","./src/segments.ts","./src/vite-env.d.ts","./src/entrypoints/singlelinestrongeditor.tsx","./src/entrypoints/strongeditor.tsx","./src/entrypoints/strongeditorconfigscreen.tsx"],"version":"6.0.3"}
