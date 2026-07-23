@@ -272,6 +272,13 @@ function ExternalValueSyncPlugin({ segments }: { segments: Segment[] }) {
   const incoming = JSON.stringify(normalizeSegments(segments));
   useEffect(() => {
     const target: Segment[] = JSON.parse(incoming);
+    // Don't fight the user's own in-flight edits. `ctx.setFieldValue` is async, so
+    // the stored value looping back through `formValues` lags behind what's been
+    // typed; while the editor is focused, local state is authoritative. Genuine
+    // external changes (record reopen, late hydration, locale switch) all happen
+    // while the field isn't being actively edited.
+    const root = editor.getRootElement();
+    if (root && root.contains(root.ownerDocument.activeElement)) return;
     const current = editor
       .getEditorState()
       .read(() => JSON.stringify($readSegments()));
