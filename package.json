@@ -1,6 +1,6 @@
 {
   "name": "datocms-plugin-single-line-strong",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "DatoCMS manual field extension: single-line text editor with a bold mark, stored as a segment array on a JSON field.",
   "homepage": "https://github.com/9elements/single-line-strong-plugin",
