@@ -37,23 +37,31 @@ not involved in the marketplace flow.
 
 Requirements (already configured in [`package.json`](package.json)):
 
-- `name` prefixed with `datocms-plugin-`
+- `name` prefixed with `datocms-plugin-`, a `homepage`, and an MIT `license`
 - `keywords` includes `datocms-plugin`
 - a `datoCmsPlugin` block with `title`, `entryPoint` (`dist/index.html`) and
   `permissions`
-- `files: ["dist"]` (plus a [`.npmignore`](.npmignore)) so the built plugin ships
-  in the tarball; `prepublishOnly` rebuilds `dist/` before every publish
+- `files: ["dist", "docs"]` (plus a [`.npmignore`](.npmignore)) so the built
+  plugin ships in the tarball; `prepublishOnly` rebuilds `dist/` before every
+  publish
 
-Publish with a public npm package:
+Optional but recommended — a `coverImage` and `previewImage` for the listing.
+These are **not** wired up yet because the files don't exist; add real raster
+assets (no SVG) as described in [`docs/README.md`](docs/README.md), then add the
+two keys to the `datoCmsPlugin` block.
+
+Before publishing, confirm the tarball contains `dist/index.html`, the bundled
+assets, and any listing images:
 
 ```bash
-npm publish        # runs prepublishOnly → npm run build first
+npm pack --dry-run   # inspect the file list
+npm publish          # runs prepublishOnly → npm run build first
 ```
 
 DatoCMS scans npm for the `datocms-plugin` keyword and adds the plugin to the
-Marketplace automatically, usually within an hour. Optionally add
-`datoCmsPlugin.previewImage` / `coverImage` (relative paths that must exist in the
-package) to enrich the listing.
+Marketplace automatically, usually within an hour. Bump `version` in
+`package.json` for every republish — npm rejects a re-publish of an existing
+version.
 
 ## Deploy + register as a private plugin (production)
 
