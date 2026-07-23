@@ -1,101 +1,106 @@
-# Single-line Strong — DatoCMS Plugin
+# Single-line Strong — DatoCMS plugin
 
-A DatoCMS manual field extension that turns a JSON field into a single-line text
-editor where selected text can be made **bold**. See [SPEC.md](SPEC.md) for the
-full design.
+A DatoCMS manual field extension that turns a **JSON field** into a single-line
+text input where selected text can be made **bold** — and nothing else. Editors
+get a clean one-line field; the value is stored as structured JSON (a segment
+array), so there's no HTML to parse or sanitize.
 
-## Tech stack
+![Single-line Strong](docs/cover.png)
 
-React 19 + Vite + TypeScript, using `datocms-plugin-sdk` + `datocms-react-ui`,
-with [Lexical](https://lexical.dev) as the editor engine.
+## Features
 
-## Local development
+- **Bold, and only bold.** A fixed **B** toolbar button and the native
+  **⌘/Ctrl + B** shortcut toggle bold on the current selection. No other marks or
+  block types exist.
+- **Single line, always.** Enter and Shift+Enter never insert a line break.
+- **Plain-text paste.** Pasted content is stripped of all formatting and any
+  newlines are collapsed to spaces.
+- **WYSIWYG.** Bold renders as actual bold text — editors never see `<strong>` or
+  raw JSON.
+- **Optional length limit.** Set a max character count per field; a live “X/Y”
+  counter shows progress and input is hard-blocked at the limit. Bold markup
+  doesn’t count toward the limit.
+- **Localization & read-only** are supported out of the box.
+
+## Install
+
+The plugin is on the DatoCMS Marketplace:
+
+1. In your project: **Settings → Plugins → Add new plugin**.
+2. Search for **Single-line strong** and install it.
+
+Then attach it to a field:
+
+1. On a model, add or edit a **JSON field** (the plugin only offers itself for
+   `json` fields).
+2. Open the field’s **Presentation** tab and choose **Single-line strong** as the
+   editor.
+3. *(Optional)* set a **Maximum character count**. Leave it empty for no limit.
+
+That’s it — edit a record and the field behaves like a single-line input with a
+bold toggle.
+
+## Stored value
+
+An empty field stores `null`. A non-empty field stores a JSON string holding the
+normalized segment array plus a plain-text mirror:
+
+```json
+{
+  "segments": [
+    { "value": "This is my ", "mark": false },
+    { "value": "highlighted", "mark": true },
+    { "value": " text", "mark": false }
+  ],
+  "raw": "This is my highlighted text"
+}
+```
+
+Each segment is a run of text that is either bold (`mark: true`) or not. The array
+is normalized — adjacent runs with the same mark are merged and there are no empty
+runs — so a given rendered text always serializes to exactly one array. See
+[SPEC.md](SPEC.md) for the full data contract and normalization rules.
+
+## Rendering the value on your frontend
+
+The JSON→HTML transform is owned by the consuming app (intentionally out of scope
+for the plugin). A minimal renderer:
+
+```ts
+type Segment = { value: string; mark: boolean };
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+export function renderStrong(fieldValue: string | null): string {
+  if (!fieldValue) return '';
+  const { segments } = JSON.parse(fieldValue) as { segments: Segment[] };
+  return segments
+    .map((s) => (s.mark ? `<strong>${escapeHtml(s.value)}</strong>` : escapeHtml(s.value)))
+    .join('');
+}
+```
+
+If you only need the unformatted text (slugs, meta tags), use the `raw` mirror
+directly.
+
+## Development
 
 ```bash
 npm install
-npm run dev      # serves the plugin at http://localhost:5173
+npm run dev      # serve the plugin at http://localhost:5173
 npm run build    # typecheck (tsc -b) + production build into dist/
+npm test         # run the segment / bridge test suites (vitest)
 ```
 
-## Register against a Dato project (dev)
+To try local changes against a real project, run `npm run dev`, then in DatoCMS go
+to **Settings → Plugins → Add new plugin → Advanced** and register
+`http://localhost:5173` as the entry-point URL. Dato loads the plugin in an iframe
+from that URL, so changes hot-reload as you edit.
 
-1. Run `npm run dev` to serve the plugin locally.
-2. In your DatoCMS project: **Settings → Plugins → Add new plugin → Advanced**,
-   and register it by URL with `http://localhost:5173` as the entry point.
-   (Dato loads the plugin in an iframe from that URL.)
-3. On a model, add or edit a **JSON field**. In the field's **Presentation** tab,
-   choose **Single-line strong** as the editor. The extension only offers itself
-   for `json` fields.
-4. Edit a record: type in the field, save, and confirm the value persists and is
-   restored on reload (and returned verbatim by the GraphQL API).
+Built with React + Vite + TypeScript on `datocms-plugin-sdk` / `datocms-react-ui`,
+using [Lexical](https://lexical.dev) as the editor engine.
 
-## Publish to the DatoCMS Marketplace
+## License
 
-For a public, one-click-installable listing, DatoCMS serves the plugin's built
-assets straight out of the **published npm package** — the Netlify host below is
-not involved in the marketplace flow.
-
-Requirements (already configured in [`package.json`](package.json)):
-
-- `name` prefixed with `datocms-plugin-`, a `homepage`, and an MIT `license`
-- `keywords` includes `datocms-plugin`
-- a `datoCmsPlugin` block with `title`, `entryPoint` (`dist/index.html`) and
-  `permissions`
-- `files: ["dist", "docs"]` (plus a [`.npmignore`](.npmignore)) so the built
-  plugin ships in the tarball; `prepublishOnly` rebuilds `dist/` before every
-  publish
-
-Optional but recommended — a `coverImage` and `previewImage` for the listing.
-These are **not** wired up yet because the files don't exist; add real raster
-assets (no SVG) as described in [`docs/README.md`](docs/README.md), then add the
-two keys to the `datoCmsPlugin` block.
-
-Before publishing, confirm the tarball contains `dist/index.html`, the bundled
-assets, and any listing images:
-
-```bash
-npm pack --dry-run   # inspect the file list
-npm publish          # runs prepublishOnly → npm run build first
-```
-
-DatoCMS scans npm for the `datocms-plugin` keyword and adds the plugin to the
-Marketplace automatically, usually within an hour. Bump `version` in
-`package.json` for every republish — npm rejects a re-publish of an existing
-version.
-
-## Deploy + register as a private plugin (production)
-
-Alternatively, keep the plugin private to a single project: host the static build
-on **Netlify** and register it in the target Dato project by URL — no marketplace
-listing.
-
-### 1. Deploy to Netlify
-
-The repo ships a [`netlify.toml`](netlify.toml) with the build settings, so Netlify
-needs no manual configuration:
-
-- **Build command:** `npm run build`
-- **Publish directory:** `dist`
-
-Connect the GitHub repo to a Netlify site (or drag-and-drop a local `npm run build`
-output). Netlify builds on push and serves the plugin at a stable public URL, e.g.
-`https://<your-site>.netlify.app`. That URL is the plugin entry point.
-
-> Netlify sends no `X-Frame-Options` header by default, so DatoCMS can embed the
-> plugin in its iframe. Don't add a framing header that would block embedding.
-
-### 2. Register as a private plugin in Dato
-
-1. In the target project: **Settings → Plugins → Add new plugin → Advanced**.
-2. Set the **entry point URL** to your Netlify site URL (from step 1).
-3. Give it a name (e.g. "Single-line strong") and save. The plugin now loads from
-   the deployed URL instead of `localhost`.
-
-### 3. Attach to a real field and verify
-
-1. On a real model, add or edit a **JSON field**. In its **Presentation** tab,
-   choose **Single-line strong** as the editor.
-2. Edit a record: type a value, save, and confirm it persists and is restored on
-   reload.
-3. Query the field via the project's **GraphQL API** and confirm the stored value
-   is returned verbatim.
+[MIT](LICENSE) © 9elements
