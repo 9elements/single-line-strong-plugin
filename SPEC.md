@@ -159,10 +159,15 @@ time:
 4. **The JSON entrypoint stays indefinitely** as a legacy mode. The plugin is on the
    marketplace with external installs that cannot be migrated by us; a sunset we can
    neither observe nor enforce would be a threat, not a plan.
-5. **The plugin would own rendering only** — no storage format, no data contract, no
-   render helper. `segments.ts` / `segment-bridge.ts` become an internal dast↔Lexical
-   mapping rather than the product. *This demotion is the crux of the decision and is
-   not yet accepted.*
+5. **The structured_text extension would own rendering only** — no storage format, no
+   data contract, no render helper. Its Lexical↔value bridge is internal plumbing, not
+   a published contract. **Accepted 2026-10-02.**
+
+   This applies to the *new* extension only. The JSON extension keeps its segment
+   array, its normalization rules and its render helper unchanged — `segments.ts` and
+   `segment-bridge.ts` remain a real contract in that entrypoint. The asymmetry is
+   deliberate: one editor owns a format because it must, the other does not because it
+   need not.
 
 ### Verified facts
 
