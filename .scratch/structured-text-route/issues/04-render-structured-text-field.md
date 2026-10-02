@@ -34,8 +34,7 @@ button with active state, Cmd/Ctrl+B, the character counter, plain-text paste an
 read-only handling, and it already speaks segments in and out. Compose it with the
 module from ticket 03 rather than writing a second editor.
 
-**Blocked by:** 01 (React root per extension), 02 (localized field paths), 03
-(structured_text value module).
+**Blocked by:** 02 (localized field paths), 03 (structured_text value module).
 
 **Status:** ready-for-agent
 

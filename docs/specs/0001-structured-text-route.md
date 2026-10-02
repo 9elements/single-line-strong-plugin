@@ -161,14 +161,6 @@ migration, indefinitely.
 - The hook is **synchronous**. Nothing can be awaited inside it, and `ctx.fields` /
   `ctx.itemTypes` are lazily populated, so any cross-field data must be warmed earlier.
 
-### Each extension gets its own React root
-
-The current entrypoint keeps one module-level React root so the input does not lose
-focus between re-renders. With more than one extension in the bundle this is actively
-harmful: rendering into that shared root from one extension unmounts what another
-extension mounted in its own frame, presenting as an editor that silently refuses
-input. Roots must be keyed per extension ID.
-
 ### The in-form value is Slate, not dast
 
 Inside the form, the field's value is the DatoCMS editor's own Slate-flavoured shape:

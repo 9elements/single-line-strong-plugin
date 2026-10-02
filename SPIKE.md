@@ -198,15 +198,34 @@ This matters for the real implementation precisely because translation is an ext
 writer: the bridge has to distinguish "the user is typing" from "something replaced
 the value underneath us".
 
-### Unplanned finding: one React root per bundle is a trap
+### Corrected: extensions do not share a React root
 
-`main.tsx` keeps a single shared React root so the input does not lose focus between
-re-renders. Adding a second extension to the same bundle broke that: the addon's
-`render(null)` unmounted the editor the override had just mounted in its own frame,
-which presented as an input that silently refused to accept typing — `disabled: false`,
-handler never firing, no error anywhere.
+An earlier version of this document recorded "one React root per bundle is a trap": the
+claim that the addon's `render(null)` unmounted the override's editor because both
+render into the same module-level root. **That was wrong.**
 
-Key the root per extension id, or give each extension its own.
+While the editor refused input during the spike, removing the addon's `render(null)`
+coincided with the problem going away, and the coincidence was written up as the cause.
+It was never tested. Two later checks disproved it:
+
+- With `render(null)` restored in the addon branch, typing in the override's editor
+  still worked.
+- With both extensions showing the id of the JavaScript document they run in, the
+  override reported `15bt` and the addon `69tm` while both were visible on the same
+  field. Different ids mean different iframes.
+
+DatoCMS gives each extension its own iframe, and each iframe loads its own copy of the
+bundle, so a module-level root cannot be shared between extensions. The existing
+single-root arrangement is correct as it stands, and the bundle can register the JSON
+editor, the addon and the override side by side without any change to it. The JSON
+route was also confirmed unaffected.
+
+The typing failure had two real causes, both recorded above: `ctx.formValues` lags
+`setFieldValue`, and a localized field is read by unwrapping the locale rather than by
+its dotted path.
+
+Left in place deliberately: the mistaken claim cost a ticket and a spec section before
+it was caught, and anyone who reads the git history will meet it.
 
 ### Unplanned finding: the form value is not dast
 
@@ -241,8 +260,9 @@ decision is not technical**: whether to accept that the plugin would own renderi
 only, with no storage format of its own (SPEC.md, direction item 5). That is
 deliberately still open.
 
-Four findings below cost real debugging time and would have been worse to hit
-mid-implementation. They belong in the implementation spec, not just here.
+Three findings below cost real debugging time and would have been worse to hit
+mid-implementation. They belong in the implementation spec, not just here. A fourth,
+about a shared React root, turned out to be wrong and is recorded as a correction.
 
 ---
 
