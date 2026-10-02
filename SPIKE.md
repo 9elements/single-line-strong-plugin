@@ -138,22 +138,136 @@ implementation.
 
 | | Question | Result | Notes |
 |---|---|---|---|
-| G1 | `appearance.editor` stays native | — | |
-| G2 | ai-translations works, `strong` survives | — | |
-| S1 | Addon opt-in signal works | — | |
-| S2 | `length` unit | — | |
+| G1 | `appearance.editor` stays native | **PASS** | Reads `structured_text` while the override is rendering. The inference the whole direction rested on is confirmed empirically. |
+| G2 | ai-translations works, `strong` survives | **PASS** | The Translate action appears on an overridden field, runs, and writes the target locale. A value carrying `{"text":"form","strong":true}` round-tripped with the mark intact. Caveat: the test string was identical in both languages, so mark *placement* under real translation is still unproven — see below. |
+| S1 | Addon opt-in signal works | **PASS** | Addon lands in `appearance.addons` as `<pluginId>/spikeOptIn`, and the editor identity stays native alongside it. The override reads it back and claims the field. |
+| S2 | `length` unit | partial | A `max: 60` validator reported "Feld darf nicht mehr als 60 Zeichen lang sein" on an **empty** field, so it is not counting visible characters as expected. Needs a deliberate test. |
 | S3 | Fallback appearance | — | |
+
+### Confirmed: a mark stays on the right word
+
+Tested with text that genuinely changes across languages:
+
+```
+de: [{"text":"Der schnelle "},{"text":"Fuchs","strong":true}]
+en: [{"text":"The fast "},{"text":"Fox","strong":true}]
+```
+
+The mark moved from *Fuchs* to *Fox*. Marks track **meaning**, not character
+position, and the leaf boundary survived translation intact.
+
+This is the empirical confirmation of the argument that chose dast over inline
+`**bold**` markers: because `ai-translations` translates each leaf's text separately
+and writes it back at the same path, the mark array is never exposed to the model and
+cannot be dropped, moved or unbalanced. With inline markers the markers *are* the
+payload and carry all of those risks.
+
+Note the mechanism's cost, not observed here but worth knowing: each leaf is
+translated as an independent string, so the model never sees the whole sentence. On a
+short headline that is fine; on longer text with several marked runs it could produce
+awkward fragments. Their source carries defensive post-processing for exactly this
+(`enforceBoundarySpaces`).
+
+### Unplanned finding: localized fields read and write by different paths
+
+On a localized field, `ctx.fieldPath` is `headline.de`, but `ctx.formValues` is keyed
+by the **bare field name** and holds a per-locale object:
+
+```json
+{ "internalLocales": [...], "headline": { "de": <value>, "en": <value> } }
+```
+
+So `ctx.formValues[ctx.fieldPath]` is always `undefined` — the editor reads as
+permanently empty while writes to the dotted path succeed. **Write with the dotted
+path; read by splitting it and unwrapping the locale.** Writing to the *bare* path
+replaces the entire per-locale object and destroys every other locale.
+
+This is the kind of defect that passes single-locale testing and corrupts content in
+production. SPEC.md's assumption that "localized fields work automatically" needs
+revisiting for the real implementation.
+
+### Unplanned finding: `ctx.formValues` lags `setFieldValue`
+
+`setFieldValue` resolves OK, but reading the path back immediately still yields the
+previous value. An input driven directly off `formValues` therefore loses every
+keystroke but the last. The editor needs local state as the source of truth for
+in-progress edits, with `formValues` used only to seed it and to pick up external
+changes — a translation writing a new value, undo, a locale switch.
+
+This matters for the real implementation precisely because translation is an external
+writer: the bridge has to distinguish "the user is typing" from "something replaced
+the value underneath us".
+
+### Unplanned finding: one React root per bundle is a trap
+
+`main.tsx` keeps a single shared React root so the input does not lose focus between
+re-renders. Adding a second extension to the same bundle broke that: the addon's
+`render(null)` unmounted the editor the override had just mounted in its own frame,
+which presented as an input that silently refused to accept typing — `disabled: false`,
+handler never firing, no error anywhere.
+
+Key the root per extension id, or give each extension its own.
+
+### Unplanned finding: the form value is not dast
+
+The field's in-form value (`ctx.formValues`) is the editor's **Slate** shape, not dast:
+
+```json
+[{ "type": "paragraph", "children": [{ "text": "Test me", "strong": true }] }]
+```
+
+A bare array, `text` rather than `value`, and marks as boolean keys on the leaf
+(`strong: true`) rather than a `marks: ["strong"]` array. Dast — `{ schema, document }`
+with `value` and a `marks` array — is what the CMA and GraphQL return.
+
+Writing dast into the form is rejected; saving only worked once the stub wrote the
+Slate shape. **Consequence for the real implementation:** the bridge maps Lexical ↔
+Slate, not Lexical ↔ dast. Translation still operates on the stored dast, which is why
+marks survive it, but the editor never sees that shape. Round-trip tests must target
+whichever representation the module under test actually handles.
 
 ### Verdict
 
-- [ ] **PASS** — both gates clear. The direction is real. Next open decision becomes
-      whether to accept that the plugin owns rendering only (SPEC.md, direction
-      item 5), then a full implementation spec.
-- [ ] **FAIL** — gate blocked. The remaining options are an upstream PR to
-      `ai-translations` adding a third-party opt-in, or accepting that this plugin
-      stays outside the ecosystem. Record which gate failed and how.
+- [x] **PASS** — both gates clear, 2026-10-02.
+
+`overrideFieldExtensions` leaves a field's editor identity native, so
+`ai-translations` treats an overridden `structured_text` field exactly as it would an
+untouched one: the Translate action appears, runs, and preserves `strong` on the
+right word across a real translation. An addon works as the per-field opt-in signal
+without reintroducing the gate.
+
+The technical question the spike existed to answer is settled. **The remaining
+decision is not technical**: whether to accept that the plugin would own rendering
+only, with no storage format of its own (SPEC.md, direction item 5). That is
+deliberately still open.
+
+Four findings below cost real debugging time and would have been worse to hit
+mid-implementation. They belong in the implementation spec, not just here.
 
 ---
+
+## Follow-up: the authoring half is untested
+
+Every gate here measured the **stored value**. Nothing tested the editing experience,
+by design — G1 and G2 were about ecosystem visibility, not authoring.
+
+The stub renders a single `<input>` with one bold flag for the whole value, so a
+value marked only on *Fox* displays entirely unbolded. That is a limitation of the
+stub, not a defect: a plain input cannot render partial formatting at all.
+
+What remains unproven is that **Lexical maps cleanly onto DatoCMS's Slate shape** —
+authoring partial bold, selecting across a mark boundary, splitting and merging leaves
+as marks are toggled. The format is undocumented, so there is no spec to check an
+implementation against.
+
+A second, smaller spike would settle it: point the existing Lexical editor's bridge at
+the Slate shape instead of the segment array and see whether authoring partial bold
+round-trips. Roughly half a day.
+
+Alternatively treat it as acceptable risk. Lexical does per-run formatting natively,
+and `segment-bridge.ts` already demonstrates mapping its node tree to a run-based
+format; the two structures are close enough that it should work. The risk is schedule,
+not viability.
 
 ## What this spike does *not* decide
 
