@@ -20,7 +20,8 @@
   ],
   "files": [
     "dist",
-    "docs"
+    "docs",
+    "!docs/adr"
   ],
   "datoCmsPlugin": {
     "title": "Single-line strong",
