@@ -183,31 +183,42 @@ A single leaf carrying a mark for an entire value did not persist in the spike, 
 the native editor's multi-leaf output did. The cause was not established. Implementers
 should assume per-run leaves are required and verify against a real field.
 
-### Localized fields read and write by different paths
+### Localized fields: reuse the existing path handling
 
 On a localized field `ctx.fieldPath` is `headline.de`, but `ctx.formValues` is keyed by
-the **bare field name** and holds a per-locale object. So:
+the **bare field name** and holds a per-locale object.
+
+The JSON route already handles this correctly: it reads by traversing the dotted path
+through the form values, and writes using the dotted path. That traversal also covers
+fields nested inside blocks. The new route must use the **same logic**, not a second
+implementation of it — extract the existing helper so both routes share it.
+
+What a second implementation would risk, and what the helper must keep doing:
 
 - **Write** using the dotted path.
-- **Read** by splitting the path and unwrapping the locale.
+- **Read** by traversing it, one segment at a time.
 - **Never write the bare path** — it replaces the whole per-locale object and destroys
   every other locale.
 
-Reading `formValues[fieldPath]` directly yields `undefined` and the editor appears
-permanently empty. This passes single-locale testing and corrupts content in
-production, so it needs a test and a comment, not just care.
+Reading `formValues[fieldPath]` as a flat key yields `undefined` and the editor appears
+permanently empty. The failure was met only in the spike's throwaway stub, which read
+that way; the existing editor does not have it.
 
 ### The form value lags writes
 
 `setFieldValue` resolves successfully, but reading the path back immediately still
-yields the previous value. An editor driven directly off the form value loses every
+yields the previous value. An input driven directly off the form value loses every
 keystroke but the last.
 
-The editor holds its own state as the source of truth for in-progress edits and treats
-the form value as a seed plus an external-change signal. Distinguishing "the user is
-typing" from "something replaced the value underneath us" matters here specifically
-because **translation is an external writer** — a translated value must reach the open
-editor, while the user's own keystrokes must not be fought.
+The existing editor already copes: it holds its own state, keeps that state
+authoritative while the field has focus, and adopts a changed form value only when the
+field does not. Reusing the editor therefore inherits this behaviour, and the new route
+needs no logic of its own for it.
+
+One consequence worth checking by hand: because the form value is ignored while the
+field has focus, a translation written while the editor is focused will not appear
+until focus leaves. That is probably acceptable, since translation is triggered from
+outside the field, but it should be confirmed rather than assumed.
 
 ### Module shape
 
@@ -306,10 +317,10 @@ editor rather than a mock.
 
 ### Locale path handling
 
-The read/write path asymmetry deserves a test even though it is a small amount of
-logic, because the failure mode is destroying other locales' content and it does not
-show up in single-locale testing. Extract the path resolution so it can be tested
-without a live DatoCMS form.
+Extracting the existing path helper so both routes share it is also the moment to give
+it a test, because it has none today and the failure mode is destroying other locales'
+content, which does not show up in single-locale testing. Cover a multi-locale value
+and a field nested inside a block.
 
 ### What is not unit-testable
 

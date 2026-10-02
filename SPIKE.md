@@ -183,8 +183,13 @@ path; read by splitting it and unwrapping the locale.** Writing to the *bare* pa
 replaces the entire per-locale object and destroys every other locale.
 
 This is the kind of defect that passes single-locale testing and corrupts content in
-production. SPEC.md's assumption that "localized fields work automatically" needs
-revisiting for the real implementation.
+production.
+
+**Scope of this finding, corrected later:** it bit the spike's throwaway stub, which
+read `formValues[fieldPath]` as a flat key. The existing JSON editor already reads by
+traversing the dotted path and writes with `ctx.fieldPath`, so it never had this
+problem. The implication for the new route is to reuse that existing logic rather than
+reimplement it, not to fix a bug in the JSON route.
 
 ### Unplanned finding: `ctx.formValues` lags `setFieldValue`
 
@@ -194,9 +199,14 @@ keystroke but the last. The editor needs local state as the source of truth for
 in-progress edits, with `formValues` used only to seed it and to pick up external
 changes — a translation writing a new value, undo, a locale switch.
 
-This matters for the real implementation precisely because translation is an external
-writer: the bridge has to distinguish "the user is typing" from "something replaced
-the value underneath us".
+Translation is an external writer, so the editor has to distinguish "the user is
+typing" from "something replaced the value underneath us".
+
+**Scope of this finding, corrected later:** again this bit only the stub, whose input
+was driven straight off `formValues`. The existing editor already handles it — it
+keeps its own state authoritative while focused and adopts a changed form value only
+when it is not. Reusing that editor inherits the behaviour. What was never tested is
+the edge it implies: a translation written while the field has focus.
 
 ### Corrected: extensions do not share a React root
 
@@ -260,9 +270,11 @@ decision is not technical**: whether to accept that the plugin would own renderi
 only, with no storage format of its own (SPEC.md, direction item 5). That is
 deliberately still open.
 
-Three findings below cost real debugging time and would have been worse to hit
-mid-implementation. They belong in the implementation spec, not just here. A fourth,
-about a shared React root, turned out to be wrong and is recorded as a correction.
+The findings below cost real debugging time, but their reach differs. The Slate shape
+is a genuine constraint on the new route. The localized-path and form-lag findings bit
+only the throwaway stub — the existing editor already handles both, and the lesson is
+to reuse it rather than reimplement. A further finding, about a shared React root,
+turned out to be wrong and is recorded as a correction.
 
 ---
 

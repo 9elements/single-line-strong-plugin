@@ -34,7 +34,21 @@ button with active state, Cmd/Ctrl+B, the character counter, plain-text paste an
 read-only handling, and it already speaks segments in and out. Compose it with the
 module from ticket 03 rather than writing a second editor.
 
-**Blocked by:** 02 (localized field paths), 03 (structured_text value module).
+**Looks the same as the JSON route.** The field should look like the existing
+single-line strong input — same box, B button on the left — so that anyone seeing the two
+side by side recognises one plugin. Rendering the same editor component is what gives
+this for free.
+
+**Reuse the existing path handling.** The JSON wrapper already reads a localized or
+block-nested field by traversing the dotted path, and writes with the dotted path. Extract
+that helper so both routes share it, and give it the test it lacks today — a multi-locale
+value and a field nested inside a block. Never write the bare field name: on a localized
+field that replaces the whole per-locale object and destroys every other locale. The
+spike's throwaway stub read the path as a flat key and saw an editor that looked
+permanently empty; the existing editor does not have that problem and must keep not
+having it.
+
+**Blocked by:** 03 (structured_text value module).
 
 **Status:** ready-for-agent
 
@@ -50,5 +64,12 @@ module from ticket 03 rather than writing a second editor.
 - [ ] Removing the addon returns the field to the native editor
 - [ ] The existing JSON route is unaffected
 - [ ] Every property read inside the override hook is defensive
+- [ ] The field looks the same as a JSON-route field, so the two are visibly the same
+      plugin
+- [ ] The path-reading helper is shared with the JSON route, tested for a multi-locale
+      value and a block-nested field, and the JSON route's behaviour is unchanged
+- [ ] Editing one locale never alters another
 - [ ] Verified by hand against a live project that `ai-translations` offers Translate
       on the field
+- [ ] Verified by hand that a translated value reaches the open editor, including the
+      case where the field has focus when the translation is written
