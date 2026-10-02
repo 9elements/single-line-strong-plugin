@@ -66,11 +66,26 @@ connect({
   },
   // SPIKE — claims any structured_text field carrying the opt-in addon.
   // Synchronous by contract: no awaiting anything in here.
+  // SPIKE — to hand the field back to DatoCMS's native editor, change the
+  // plugin's registered entry point URL to http://localhost:5173/?spikeOff=1
+  // and reload. Needed to discover the real Slate mark key: make a value bold
+  // natively, then remove the flag and read what was actually stored.
+  //
+  // NOT localStorage: the plugin runs in its own iframe on its own origin, so
+  // storage set in the DatoCMS tab is invisible here.
   overrideFieldExtensions(field) {
-    if (field.attributes.field_type !== 'structured_text') return;
+    if (new URLSearchParams(window.location.search).has('spikeOff')) return;
 
-    const optedIn = field.attributes.appearance.addons.some(
-      (addon) => addon.field_extension === SPIKE_ADDON_ID,
+    // Called for EVERY field in the project, so anything that throws here
+    // takes down the whole plugin handshake. Defend accordingly: `addons` is
+    // documented as required but is absent on some fields in practice.
+    if (field?.attributes?.field_type !== 'structured_text') return;
+
+    const addons = field.attributes.appearance?.addons;
+    if (!Array.isArray(addons)) return;
+
+    const optedIn = addons.some(
+      (addon) => addon?.field_extension === SPIKE_ADDON_ID,
     );
     if (!optedIn) return;
 
@@ -84,11 +99,14 @@ connect({
     if (fieldExtensionId === SPIKE_OVERRIDE_ID) {
       render(<SpikeOverrideEditor ctx={ctx} />);
     }
-    // SPIKE — the addon renders nothing; it exists only as a flag the
-    // override reads. Rendering an empty canvas keeps the field tidy.
-    if (fieldExtensionId === SPIKE_ADDON_ID) {
-      render(null);
-    }
+    // SPIKE — the addon is only a flag for the override to read, so it renders
+    // nothing. Deliberately NOT render(null): every extension in this bundle
+    // shares one React root, and rendering null into it unmounts whatever the
+    // override just mounted in its own frame — which presents as an input that
+    // silently refuses to accept typing.
+    //
+    // For the real implementation: a shared root across extensions is a trap.
+    // Key the root per extension id, or give the addon its own.
   },
   renderManualFieldExtensionConfigScreen(
     fieldExtensionId,
