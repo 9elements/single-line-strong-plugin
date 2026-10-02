@@ -369,10 +369,11 @@ complete five-key validator set for structured_text contains nothing constrainin
 count. Both facts are schema-verified. The gap is structural and no roadmap item
 suggests it is closing.
 
-**Node version.** The toolchain requires Node 22 or newer — Vite 8 and Vitest 4 both
-depend on a `node:util` export added in 22. The repo pins 20 via `.tool-versions`, under
-which the build, the tests and the dev server all fail while `tsc` still passes. Worth
-fixing alongside this work.
+**Node version.** Vite 8 needs Node `^20.19 || >=22.12` and Vitest 4 needs
+`^20 || ^22 || >=24`, so the supported range is `^20.19 || ^22.12 || >=24`. On an older
+Node — for example a machine defaulting to 20.11 — the build, the tests and the dev
+server all fail while `tsc` still passes. The range is declared in `engines` in
+`package.json`, and `.nvmrc` selects 22 for nvm users and for Netlify, which reads it.
 
 **Local development.** DatoCMS loads the plugin iframe in the browser, so registering it
 as `http://localhost:5173` works directly — no tunnel. Chrome or Firefox only; Safari
