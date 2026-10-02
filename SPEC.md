@@ -123,13 +123,20 @@ Rules:
 - The JSON→HTML render helper (owned by the consuming frontend/app).
 - Marks other than bold.
 - Multi-line / paragraph support.
-- Publishing to the public DatoCMS marketplace.
+
+> The original scope excluded publishing to the public DatoCMS marketplace. That is no
+> longer true: the plugin is listed and has external installs, which is why the JSON
+> route cannot be migrated or sunset by us.
 
 ## Open design question: translatability (2026-10-02)
 
-**Status: undecided.** No migration is planned or approved. This section records a
-direction under consideration and the facts gathered for it, so the reasoning is not
-lost. Nothing here is a commitment.
+**Status: decided, not yet built.** The spike passed both gates (see `SPIKE.md`) and
+the rendering-only scope was accepted on 2026-10-02. The implementation spec is
+`docs/specs/0001-structured-text-route.md`.
+
+Still not planned or approved: migrating any existing JSON field. The JSON route stays
+indefinitely. This section remains as the record of why the direction was chosen and
+what was rejected.
 
 ### The problem
 
