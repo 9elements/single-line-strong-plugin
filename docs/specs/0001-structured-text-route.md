@@ -179,9 +179,10 @@ editor write a bold value and reading back what it stored. Treat it as a format 
 could change: isolate every assumption about it in one module, and make the test suite
 the thing that catches a change.
 
-A single leaf carrying a mark for an entire value did not persist in the spike, while
-the native editor's multi-leaf output did. The cause was not established. Implementers
-should assume per-run leaves are required and verify against a real field.
+A fully bold line is stored as one marked leaf, which is what the native editor itself
+writes for it — checked against a live field. An early spike run suggested a single
+marked leaf did not persist; that came from the stub's broken read path, not from
+DatoCMS.
 
 ### Localized fields: reuse the existing path handling
 

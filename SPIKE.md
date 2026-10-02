@@ -255,6 +255,19 @@ Slate, not Lexical ↔ dast. Translation still operates on the stored dast, whic
 marks survive it, but the editor never sees that shape. Round-trip tests must target
 whichever representation the module under test actually handles.
 
+### Checked later: a fully bold line is one marked leaf
+
+An early run suggested that a single leaf carrying `strong` for a whole value did not
+persist. That was an artifact of the stub's broken read path. Having the native editor
+store the same thing and reading it back shows DatoCMS writes exactly that shape:
+
+```json
+[{ "type": "paragraph", "children": [{ "text": "Der schnelle Fuchs", "strong": true }] }]
+```
+
+Two Enter-separated bold paragraphs are stored as two such paragraphs, one marked leaf
+each. A fully bold *single word* was not checked separately.
+
 ### Verdict
 
 - [x] **PASS** — both gates clear, 2026-10-02.

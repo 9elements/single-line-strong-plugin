@@ -27,10 +27,10 @@ flattened to one, marks other than strong dropped, adjacent runs sharing a mark 
 empty runs dropped, and an empty field represented as no value at all. This mirrors the
 rules the JSON route already applies to segments.
 
-**One unresolved observation from the spike:** a single leaf carrying a mark for an
-entire value did not persist, while the native editor's multi-leaf output did. The
-cause was never established. Assume per-run leaves are required, and verify against a
-real field rather than trusting that inference.
+**A fully bold line is one marked leaf.** The native editor stores it that way, checked
+against a live field, so serialise it the same way. An early spike run suggested a
+single marked leaf did not persist; that came from the stub's broken read path, not
+from DatoCMS.
 
 **Blocked by:** None — can start immediately.
 
