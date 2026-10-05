@@ -110,6 +110,29 @@ describe('parseSlateValue', () => {
     expect(parseSlateValue(stored)).toEqual([b('Der schnelle Fuchs Eine neue Zeile auch fett')]);
   });
 
+  it.each([
+    [
+      'a plain second paragraph after a bold last word',
+      // Verbatim from the native editor.
+      [
+        { type: 'paragraph', children: [{ text: 'Der schnelle ' }, { text: 'Fuchs', strong: true }] },
+        { type: 'paragraph', children: [{ text: 'Eine neue Zeile hier' }] },
+      ],
+      [p('Der schnelle '), b('Fuchs'), p(' Eine neue Zeile hier')],
+    ],
+    [
+      'two paragraphs that each end in a bold word',
+      [
+        { type: 'paragraph', children: [{ text: 'Der schnelle ' }, { text: 'Fuchs', strong: true }] },
+        { type: 'paragraph', children: [{ text: 'Eine neue Zeile ' }, { text: 'hier', strong: true }] },
+      ],
+      [p('Der schnelle '), b('Fuchs'), p(' Eine neue Zeile '), b('hier')],
+    ],
+  ])('keeps marks on their own words across paragraphs: %s', (_label, stored, expected) => {
+    // A bold word at the end of one paragraph must not bleed into the next.
+    expect(parseSlateValue(stored)).toEqual(expected);
+  });
+
   it('does not stack separators around an empty paragraph', () => {
     const stored = [
       { type: 'paragraph', children: [{ text: 'oben' }] },
