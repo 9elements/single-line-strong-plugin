@@ -50,26 +50,26 @@ having it.
 
 **Blocked by:** 03 (structured_text value module).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] An addon extension restricted to structured_text fields is registered and can be
+- [x] An addon extension restricted to structured_text fields is registered and can be
       enabled on a field in the Presentation tab
-- [ ] The override claims exactly those structured_text fields carrying the addon, and
+- [x] The override claims exactly those structured_text fields carrying the addon, and
       no others
-- [ ] The field's editor identity still reads `structured_text` while the override is
+- [x] The field's editor identity still reads `structured_text` while the override is
       rendering
-- [ ] The field renders as a one-row editor with a working bold button; bold applies to
+- [x] The field renders as a one-row editor with a working bold button; bold applies to
       a selection, not the whole value
-- [ ] A value survives type → save → reload with its marks intact
-- [ ] Removing the addon returns the field to the native editor
-- [ ] The existing JSON route is unaffected
-- [ ] Every property read inside the override hook is defensive
-- [ ] The field looks the same as a JSON-route field, so the two are visibly the same
+- [x] A value survives type → save → reload with its marks intact
+- [x] Removing the addon returns the field to the native editor
+- [x] The existing JSON route is unaffected
+- [x] Every property read inside the override hook is defensive
+- [x] The field looks the same as a JSON-route field, so the two are visibly the same
       plugin
-- [ ] The path-reading helper is shared with the JSON route, tested for a multi-locale
+- [x] The path-reading helper is shared with the JSON route, tested for a multi-locale
       value and a block-nested field, and the JSON route's behaviour is unchanged
-- [ ] Editing one locale never alters another
-- [ ] Verified by hand against a live project that `ai-translations` offers Translate
+- [x] Editing one locale never alters another
+- [x] Verified by hand against a live project that `ai-translations` offers Translate
       on the field
-- [ ] Verified by hand that a translated value reaches the open editor, including the
+- [x] Verified by hand that a translated value reaches the open editor, including the
       case where the field has focus when the translation is written
