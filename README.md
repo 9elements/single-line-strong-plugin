@@ -7,6 +7,26 @@ array), so there's no HTML to parse or sanitize.
 
 ![Single-line Strong](docs/cover.png)
 
+## Two ways to use it
+
+The route is chosen by the **field type**, which is fixed when the field is created —
+there is no switch.
+
+| | **Structured text** (recommended) | **JSON** (legacy) |
+|---|---|---|
+| Field type | Structured text | JSON |
+| How you enable it | Enable the **Single-line strong** addon in Presentation | Pick **Single-line strong** as the editor in Presentation |
+| Field identifies as | `structured_text`, so translation and other format-aware tools treat it as native | the plugin’s own editor, so tools like `ai-translations` skip it |
+| Length limit | The field’s native length validator, enforced at save | The plugin’s own setting, enforced in the editor only |
+
+**For a new field, use Structured text.** The JSON route is **legacy: supported, not
+recommended for new fields.** It stays supported — existing installs keep working and
+nothing is being removed — it is simply not where new fields should start.
+
+Moving an existing JSON field to Structured text is not a setting you can change. It
+means creating a new field, migrating the content, and updating your frontend. No
+migration is required: if the JSON route works for you, leave it as it is.
+
 ## Features
 
 - **Bold, and only bold.** A fixed **B** toolbar button and the native

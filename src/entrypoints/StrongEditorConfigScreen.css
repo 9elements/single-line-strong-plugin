@@ -1,0 +1,6 @@
+/* Quiet guidance under the JSON route's settings; deliberately not styled as a warning. */
+.sls-legacy-note {
+  margin: var(--spacing-m, 12px) 0 0;
+  color: var(--color--ink-subtle, inherit);
+  font-size: var(--font-size-m);
+}
