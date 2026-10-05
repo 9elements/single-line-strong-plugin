@@ -40,6 +40,26 @@ Then attach it to a field:
 That’s it — edit a record and the field behaves like a single-line input with a
 bold toggle.
 
+## Using it on a structured text field
+
+The plugin can also take over a **Structured text** field. The field stays an
+ordinary structured text field as far as the rest of DatoCMS is concerned; only the
+editor you see changes.
+
+Set the field up so it allows bold and nothing else:
+
+1. Add a **Structured text** field to a model.
+2. In its **Presentation** settings, allow the **bold** mark only, and allow no
+   nodes (no headings, lists, links, quotes or code).
+3. In its **Validations** settings, allow no embedded blocks, no inline blocks and no
+   links to other records.
+4. Back in **Presentation**, enable the **Single-line strong** addon.
+
+If the field allows more than that, the addon’s settings panel says what — for
+example “This field also allows emphasis and underline, which the single-line editor
+cannot show.” It is only a heads-up: you can still save the field, and the editor
+simply drops what it cannot show the next time the field is edited.
+
 ## Stored value
 
 An empty field stores `null`. A non-empty field stores a JSON string holding the

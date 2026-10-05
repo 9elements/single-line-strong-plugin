@@ -10,6 +10,7 @@ import 'datocms-react-ui/styles.css';
 
 import { SingleLineStrongEditor } from './entrypoints/SingleLineStrongEditor';
 import { StrongEditorConfigScreen } from './entrypoints/StrongEditorConfigScreen';
+import { StructuredTextConfigScreen } from './entrypoints/StructuredTextConfigScreen';
 import { StructuredTextEditor } from './entrypoints/StructuredTextEditor';
 import {
   STRUCTURED_TEXT_ADDON_ID,
@@ -55,6 +56,9 @@ connect({
         name: 'Single-line strong',
         type: 'addon',
         fieldTypes: ['structured_text'],
+        // Shows the config screen, which has nothing to set: it only warns when the
+        // field's own settings allow more than the editor can show.
+        configurable: true,
       },
     ];
   },
@@ -81,6 +85,9 @@ connect({
   ) {
     if (fieldExtensionId === FIELD_EXTENSION_ID) {
       render(<StrongEditorConfigScreen ctx={ctx} />);
+    }
+    if (fieldExtensionId === STRUCTURED_TEXT_ADDON_ID) {
+      render(<StructuredTextConfigScreen ctx={ctx} />);
     }
   },
 });
