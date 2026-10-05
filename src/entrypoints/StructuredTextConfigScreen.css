@@ -1,0 +1,35 @@
+/*
+  The structured_text addon's config screen. Colours come from DatoCMS's design
+  tokens, which the runtime flips for light and dark mode — never hardcode them
+  here, or the text goes unreadable in one of the two. Each token has a fallback
+  so the screen stays legible if the host does not supply it.
+*/
+.st-config {
+  font-size: var(--font-size-m);
+  color: var(--color--ink, inherit);
+}
+
+.st-config__lead {
+  margin: 0 0 var(--spacing-s, 8px);
+  font-weight: var(--font-weight-bold, 700);
+}
+
+.st-config__warnings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--spacing-s, 8px);
+}
+
+.st-config__warning {
+  padding: var(--spacing-s, 8px) var(--spacing-m, 12px);
+  border-left: 4px solid var(--warning-color, currentColor);
+  background: var(--color--warning-soft--surface, transparent);
+  color: var(--color--ink-warning, inherit);
+}
+
+.st-config__note {
+  margin: var(--spacing-s, 8px) 0 0;
+  color: var(--color--ink-subtle, inherit);
+}
