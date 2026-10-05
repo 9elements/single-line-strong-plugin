@@ -3,8 +3,9 @@ import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
 
 import { getValueAtPath } from '../field-path';
 import type { Segment } from '../segments';
-import { parseSlateValue, valueToWrite } from '../slate';
+import { parseSlateValue, valueToWrite, wasNormalised } from '../slate';
 import { StrongEditor } from './StrongEditor';
+import './StructuredTextEditor.css';
 
 type Props = {
   ctx: RenderFieldExtensionCtx;
@@ -24,6 +25,9 @@ type Props = {
 export function StructuredTextEditor({ ctx }: Props) {
   const stored = getValueAtPath(ctx.formValues, ctx.fieldPath);
   const initialSegments = parseSlateValue(stored);
+  // Only while the stored value still differs from what is shown: once the person
+  // edits, the normalised form is persisted and the notice goes away on its own.
+  const adjusted = wasNormalised(stored);
 
   const handleChange = (segments: Segment[]) => {
     // Nothing to write when the editor merely reports what is already stored. That
@@ -51,6 +55,12 @@ export function StructuredTextEditor({ ctx }: Props) {
         // without waiting for the user to click away.
         adoptExternalWhileFocused
       />
+      {adjusted && (
+        <p className="st-editor__notice" role="status">
+          This value was adjusted to fit a single line with bold only. Nothing is
+          saved until you edit the field.
+        </p>
+      )}
     </Canvas>
   );
 }

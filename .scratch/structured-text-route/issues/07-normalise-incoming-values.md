@@ -22,12 +22,12 @@ original structure. The realistic sources are migrations, imports and CMA script
 
 **Blocked by:** 04 (render structured_text field).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A multi-paragraph value opens, flattened, without error
-- [ ] A value with unsupported marks opens with those marks dropped
-- [ ] A notice appears when the incoming value did not round-trip cleanly, and not
+- [x] A multi-paragraph value opens, flattened, without error
+- [x] A value with unsupported marks opens with those marks dropped
+- [x] A notice appears when the incoming value did not round-trip cleanly, and not
       otherwise
-- [ ] Opening a record never modifies it — no write happens on mount
-- [ ] The normalised value is persisted only once the user edits
-- [ ] The notice does not block editing
+- [x] Opening a record never modifies it — no write happens on mount
+- [x] The normalised value is persisted only once the user edits
+- [x] The notice does not block editing

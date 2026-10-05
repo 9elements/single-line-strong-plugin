@@ -100,6 +100,19 @@ export function valueToWrite(
   return { value: next };
 }
 
+/**
+ * Whether showing `stored` meant changing it: paragraphs flattened, marks or
+ * structure dropped. Drives the notice that tells the person content was adjusted.
+ *
+ * A value with nothing visible has nothing to lose, so it never counts — the native
+ * editor stores an emptied field as an empty paragraph, which is not worth a notice.
+ */
+export function wasNormalised(stored: unknown): boolean {
+  const shown = serializeSlateValue(parseSlateValue(stored));
+  if (shown === null) return false;
+  return JSON.stringify(shown) !== JSON.stringify(stored);
+}
+
 /** The form's own value is a bare array of blocks; dast wraps the same in `document`. */
 function topLevelBlocks(raw: unknown): unknown[] {
   if (Array.isArray(raw)) return raw;

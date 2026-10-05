@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseSlateValue, serializeSlateValue, valueToWrite } from './slate';
+import { parseSlateValue, serializeSlateValue, valueToWrite, wasNormalised } from './slate';
 import type { Segment } from './segments';
 
 /** Terse constructors so the cases below read as data, not boilerplate. */
@@ -357,5 +357,51 @@ describe('valueToWrite', () => {
     expect(valueToWrite(null, [p('Hallo')])).toStrictEqual({
       value: [{ type: 'paragraph', children: [{ text: 'Hallo' }] }],
     });
+  });
+});
+
+describe('wasNormalised', () => {
+  it('is false for a value the editor shows exactly as stored', () => {
+    expect(
+      wasNormalised([
+        { type: 'paragraph', children: [{ text: 'Der schnelle ' }, { text: 'Fuchs', strong: true }] },
+      ]),
+    ).toBe(false);
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['an empty list', []],
+    ['an empty paragraph', [{ type: 'paragraph', children: [{ text: '' }] }]],
+    ['garbage', 'text'],
+  ])('is false for %s, which has nothing to lose', (_label, empty) => {
+    expect(wasNormalised(empty)).toBe(false);
+  });
+
+  it('is true when several paragraphs were flattened', () => {
+    expect(
+      wasNormalised([
+        { type: 'paragraph', children: [{ text: 'eins' }] },
+        { type: 'paragraph', children: [{ text: 'zwei' }] },
+      ]),
+    ).toBe(true);
+  });
+
+  it('is true when a mark other than strong was dropped', () => {
+    expect(
+      wasNormalised([
+        { type: 'paragraph', children: [{ text: 'a', strong: true }, { text: 'b', emphasis: true }] },
+      ]),
+    ).toBe(true);
+  });
+
+  it('is true when structure such as a link or heading was flattened', () => {
+    expect(
+      wasNormalised([
+        { type: 'paragraph', children: [{ text: 'see ' }, { type: 'link', url: 'x', children: [{ text: 'here' }] }] },
+      ]),
+    ).toBe(true);
+    expect(wasNormalised([{ type: 'heading', level: 1, children: [{ text: 'Title' }] }])).toBe(true);
   });
 });
