@@ -1,6 +1,7 @@
 import { Canvas } from 'datocms-react-ui';
 import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
 
+import { nativeMaxLength } from '../field-config';
 import { getValueAtPath } from '../field-path';
 import type { Segment } from '../segments';
 import { parseSlateValue, valueToWrite, wasNormalised } from '../slate';
@@ -28,6 +29,11 @@ export function StructuredTextEditor({ ctx }: Props) {
   // Only while the stored value still differs from what is shown: once the person
   // edits, the normalised form is persisted and the notice goes away on its own.
   const adjusted = wasNormalised(stored);
+  const maxLength = nativeMaxLength(ctx.field);
+  const visibleLength = initialSegments.reduce((n, s) => n + s.value.length, 0);
+  // DatoCMS reports a failed length validator with a raw `fieldError.undefined`
+  // that a plugin cannot replace, so say in words what is wrong.
+  const overLimit = maxLength !== undefined && visibleLength > maxLength;
 
   const handleChange = (segments: Segment[]) => {
     // Nothing to write when the editor merely reports what is already stored. That
@@ -50,11 +56,20 @@ export function StructuredTextEditor({ ctx }: Props) {
         initialSegments={initialSegments}
         onChange={handleChange}
         label={ctx.field.attributes.label}
+        // The limit is the field's native length validator, which DatoCMS enforces
+        // at save. The counter and input limit are only the editing affordance.
+        maxLength={maxLength}
         disabled={ctx.disabled}
         // A translation can land in this editor while it has focus, and must show up
         // without waiting for the user to click away.
         adoptExternalWhileFocused
       />
+      {overLimit && (
+        <p className="st-editor__notice" role="alert">
+          This text has {visibleLength} characters; the field allows {maxLength}.
+          Shorten it to save the record.
+        </p>
+      )}
       {adjusted && (
         <p className="st-editor__notice" role="status">
           This value was adjusted to fit a single line with bold only. Nothing is

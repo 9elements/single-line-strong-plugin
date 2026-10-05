@@ -259,7 +259,12 @@ which is enforced when the record saves and therefore applies to values written 
 translation and the CMA — neither of which passes through our editor. The live counter
 remains an editor affordance.
 
-The unit `length` counts on structured_text is **unverified**. The documented wording
+**Established (spike S2):** `length` counts visible characters across paragraphs, ignores
+bold markup and accepts an empty field, so it is usable. The editor reads the field's
+`length.max` for its counter and input limit. The text below records why it had to be
+checked.
+
+The unit `length` counts on structured_text was **unverified**. The documented wording
 is shared with the string validator and is not independent evidence, and a `max: 60`
 validator rejected an empty field during the spike. Establish the real behaviour before
 relying on it; if it proves unusable, keep the input-level limit and document that it

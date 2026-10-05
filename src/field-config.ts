@@ -73,6 +73,24 @@ export function permissivenessWarnings(field: unknown): string[] {
   return warnings;
 }
 
+/**
+ * The maximum character count set on a structured_text field's native `length`
+ * validator, or `undefined` when there is none (or it is not a usable number).
+ *
+ * DatoCMS enforces that validator at save, which covers values written by
+ * translation and the CMA. Established against a live field: it counts visible
+ * characters, across paragraphs, ignores bold markup, and accepts an empty field.
+ * The editor reads the same number so its counter and input limit agree with it.
+ *
+ * Takes `unknown` and never throws, like the rest of this module: `field` is the
+ * render context's `ctx.field`.
+ */
+export function nativeMaxLength(field: unknown): number | undefined {
+  const attributes = asRecord(asRecord(field)?.attributes);
+  const max = asRecord(asRecord(attributes?.validators)?.length)?.max;
+  return typeof max === 'number' && Number.isInteger(max) && max > 0 ? max : undefined;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)

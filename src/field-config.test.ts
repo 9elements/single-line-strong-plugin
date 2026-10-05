@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { permissivenessWarnings } from './field-config';
+import { nativeMaxLength, permissivenessWarnings } from './field-config';
 
 type Overrides = {
   marks?: unknown;
@@ -126,5 +126,27 @@ describe('permissivenessWarnings', () => {
     };
 
     expect(permissivenessWarnings(json)).toEqual([]);
+  });
+});
+
+describe('nativeMaxLength', () => {
+  const withValidators = (validators: unknown) => ({ attributes: { validators } });
+
+  it('reads the maximum from the native length validator', () => {
+    expect(nativeMaxLength(withValidators({ length: { max: 60 } }))).toBe(60);
+  });
+
+  it.each([
+    ['no validators', withValidators({})],
+    ['a length validator with only a minimum', withValidators({ length: { min: 3 } })],
+    ['a zero maximum', withValidators({ length: { max: 0 } })],
+    ['a negative maximum', withValidators({ length: { max: -5 } })],
+    ['a fractional maximum', withValidators({ length: { max: 2.5 } })],
+    ['a non-numeric maximum', withValidators({ length: { max: '60' } })],
+    ['garbage', 'text'],
+    ['null', null],
+    ['undefined', undefined],
+  ])('has no limit for %s', (_label, field) => {
+    expect(nativeMaxLength(field)).toBeUndefined();
   });
 });
