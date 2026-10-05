@@ -1,6 +1,7 @@
 import { Canvas } from 'datocms-react-ui';
 import type { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
 
+import { getValueAtPath } from '../field-path';
 import { parseFieldValue, serializeFieldValue, type Segment } from '../segments';
 import { StrongEditor } from './StrongEditor';
 import type { StrongEditorParameters } from './StrongEditorConfigScreen';
@@ -8,26 +9,6 @@ import type { StrongEditorParameters } from './StrongEditorConfigScreen';
 type Props = {
   ctx: RenderFieldExtensionCtx;
 };
-
-/**
- * Reads the value at `ctx.fieldPath` out of `ctx.formValues`.
- *
- * `fieldPath` is a *dot-path* into the (nested) `formValues` object, not a flat
- * key. For a top-level field it's just the API key (e.g. `"title"`), so a bracket
- * lookup would happen to work — but for a field inside a block it looks like
- * `"content.de.content.2.headline"`, and `formValues["content.de.…"]` finds no
- * such literal key (returns `undefined`). We therefore traverse each segment,
- * with numeric segments indexing the block arrays. Mirrors DatoCMS's own
- * `lodash.get(formValues, fieldPath)` idiom without pulling in the dependency.
- */
-function getValueAtPath(obj: Record<string, unknown>, path: string): unknown {
-  return path.split('.').reduce<unknown>((acc, key) => {
-    if (acc !== null && typeof acc === 'object') {
-      return (acc as Record<string, unknown>)[key];
-    }
-    return undefined;
-  }, obj);
-}
 
 /**
  * The manual field extension: a single-line, bold-only text editor bound to a

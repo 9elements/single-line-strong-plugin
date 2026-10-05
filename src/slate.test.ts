@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseSlateValue, serializeSlateValue } from './slate';
+import { parseSlateValue, serializeSlateValue, valueToWrite } from './slate';
 import type { Segment } from './segments';
 
 /** Terse constructors so the cases below read as data, not boilerplate. */
@@ -259,5 +259,64 @@ describe('round trip', () => {
   it('keeps an emptied field empty', () => {
     expect(serializeSlateValue(parseSlateValue(null))).toBeNull();
     expect(serializeSlateValue(parseSlateValue([{ type: 'paragraph', children: [{ text: '' }] }]))).toBeNull();
+  });
+});
+
+describe('valueToWrite', () => {
+  // What the form holds for a bold word in a plain line, as the native editor wrote it.
+  const stored = [
+    {
+      type: 'paragraph',
+      children: [{ text: 'Der schnelle ' }, { text: 'Fuchs', strong: true }],
+    },
+  ];
+
+  // Opening a record makes the editor report its content once, as if it had changed.
+  // Writing that back would mark the record dirty and could rewrite content nobody edited.
+  it('has nothing to write when the editor reports what is already stored', () => {
+    expect(valueToWrite(stored, [p('Der schnelle '), b('Fuchs')])).toBeUndefined();
+  });
+
+  it('has nothing to write when an empty field reports empty on opening', () => {
+    expect(valueToWrite(null, [])).toBeUndefined();
+    expect(valueToWrite(undefined, [])).toBeUndefined();
+  });
+
+  it('does not write on opening a value that was only normalized for display', () => {
+    // Two paragraphs from an import: shown as one line, stored untouched until edited.
+    const imported = [
+      { type: 'paragraph', children: [{ text: 'eins' }] },
+      { type: 'paragraph', children: [{ text: 'zwei' }] },
+    ];
+
+    expect(valueToWrite(imported, [p('eins zwei')])).toBeUndefined();
+  });
+
+  it('writes the new value once the content has really changed', () => {
+    expect(valueToWrite(stored, [p('Der schnelle '), b('Fuchs'), p(' springt')])).toStrictEqual({
+      value: [
+        {
+          type: 'paragraph',
+          children: [{ text: 'Der schnelle ' }, { text: 'Fuchs', strong: true }, { text: ' springt' }],
+        },
+      ],
+    });
+  });
+
+  it('writes a change of mark alone', () => {
+    expect(valueToWrite(stored, [p('Der schnelle Fuchs')])).toStrictEqual({
+      value: [{ type: 'paragraph', children: [{ text: 'Der schnelle Fuchs' }] }],
+    });
+  });
+
+  it('writes null, not an empty paragraph, when the field is cleared', () => {
+    // `{ value: null }` is a real write; `undefined` is "nothing to write".
+    expect(valueToWrite(stored, [])).toStrictEqual({ value: null });
+  });
+
+  it('writes the first value typed into an empty field', () => {
+    expect(valueToWrite(null, [p('Hallo')])).toStrictEqual({
+      value: [{ type: 'paragraph', children: [{ text: 'Hallo' }] }],
+    });
   });
 });
