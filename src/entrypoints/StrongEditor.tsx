@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -21,6 +21,7 @@ import {
   type EditorState,
 } from 'lexical';
 
+import { classifyIncoming, rememberWrite } from '../external-change';
 import { normalizeSegments, type Segment } from '../segments';
 import { $populateFromSegments, $readSegments } from '../segment-bridge';
 import './StrongEditor.css';
@@ -42,6 +43,14 @@ type Props = {
   maxLength?: number;
   /** When true, the editor is read-only but still renders bold styling. */
   disabled?: boolean;
+  /**
+   * Adopt a value written from outside — a translation, say — even while the editor
+   * has focus. Off by default: the editor then ignores incoming values while focused,
+   * so the lagging echo of its own typing cannot overwrite it. When on, echoes are
+   * recognised by what the editor itself wrote (see `external-change.ts`), so only a
+   * genuinely external value is adopted.
+   */
+  adoptExternalWhileFocused?: boolean;
 };
 
 /**
@@ -60,6 +69,7 @@ export function StrongEditor({
   placeholder,
   maxLength,
   disabled = false,
+  adoptExternalWhileFocused = false,
 }: Props) {
   // A positive number enables the counter + input limit; anything else disables
   // the feature entirely (graceful no-op when no max is configured).
@@ -110,7 +120,10 @@ export function StrongEditor({
         <PlainTextPastePlugin />
         {hasLimit && <MaxLengthPlugin maxLength={maxLength} />}
         <EditableSyncPlugin editable={!disabled} />
-        <ExternalValueSyncPlugin segments={initialSegments} />
+        <ExternalValueSyncPlugin
+          segments={initialSegments}
+          adoptWhileFocused={adoptExternalWhileFocused}
+        />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
       </LexicalComposer>
     </div>
@@ -252,6 +265,14 @@ function CharCounter({ maxLength }: { maxLength: number }) {
   );
 }
 
+/** A stable string for what an editor state holds, comparable with an incoming value. */
+function contentOf(state: EditorState): string {
+  return state.read(() => JSON.stringify($readSegments()));
+}
+
+/** Marks an update as the editor adopting an external value, not a write of its own. */
+const EXTERNAL_SYNC_TAG = 'external-sync';
+
 /**
  * Reconciles a late-arriving or externally-changed stored value into the editor.
  *
@@ -263,27 +284,63 @@ function CharCounter({ maxLength }: { maxLength: number }) {
  * holds, repopulates it. Comparing against the editor's *own* content means our
  * own edits — which loop back in through `formValues` — are seen as
  * already-applied and skipped, so the caret is never disturbed while typing.
+ *
+ * By default the editor ignores incoming values while it has focus. With
+ * `adoptWhileFocused` it instead recognises the echoes of its own writes and adopts
+ * everything else, so a value written from outside — a translation — shows up even
+ * while the cursor is in the field.
  */
-function ExternalValueSyncPlugin({ segments }: { segments: Segment[] }) {
+function ExternalValueSyncPlugin({
+  segments,
+  adoptWhileFocused,
+}: {
+  segments: Segment[];
+  adoptWhileFocused: boolean;
+}) {
   const [editor] = useLexicalComposerContext();
   // A stable, comparable projection of the incoming value; also the effect key so
   // the reconciliation runs only when the stored value actually changes.
   const incoming = JSON.stringify(normalizeSegments(segments));
+  // Contents this editor has written whose echo has not come back yet. Only used
+  // when adopting while focused; see `external-change.ts`.
+  const pending = useRef<string[]>([]);
+
+  useEffect(() => {
+    if (!adoptWhileFocused) return;
+    return editor.registerUpdateListener(({ editorState, prevEditorState, tags }) => {
+      // Our own adoption of an external value is not a write of ours.
+      if (tags.has(EXTERNAL_SYNC_TAG)) return;
+      const content = contentOf(editorState);
+      // Selection and focus changes update the editor too; only a change of
+      // content is a write.
+      if (content === contentOf(prevEditorState)) return;
+      pending.current = rememberWrite(pending.current, content);
+    });
+  }, [editor, adoptWhileFocused]);
+
   useEffect(() => {
     const target: Segment[] = JSON.parse(incoming);
-    // Don't fight the user's own in-flight edits. `ctx.setFieldValue` is async, so
-    // the stored value looping back through `formValues` lags behind what's been
-    // typed; while the editor is focused, local state is authoritative. Genuine
-    // external changes (record reopen, late hydration, locale switch) all happen
-    // while the field isn't being actively edited.
-    const root = editor.getRootElement();
-    if (root && root.contains(root.ownerDocument.activeElement)) return;
-    const current = editor
-      .getEditorState()
-      .read(() => JSON.stringify($readSegments()));
-    if (current === incoming) return;
-    editor.update(() => $populateFromSegments(target));
-  }, [editor, incoming]);
+    const current = contentOf(editor.getEditorState());
+
+    if (adoptWhileFocused) {
+      // `ctx.setFieldValue` is async, so the stored value looping back lags behind
+      // what has been typed. Rather than trusting focus to mean "the user is
+      // typing", recognise our own echoes by what we wrote, and adopt the rest.
+      const result = classifyIncoming(incoming, current, pending.current);
+      pending.current = result.pending;
+      if (!result.external) return;
+    } else {
+      // Don't fight the user's own in-flight edits. `ctx.setFieldValue` is async, so
+      // the stored value looping back through `formValues` lags behind what's been
+      // typed; while the editor is focused, local state is authoritative. Genuine
+      // external changes (record reopen, late hydration, locale switch) all happen
+      // while the field isn't being actively edited.
+      const root = editor.getRootElement();
+      if (root && root.contains(root.ownerDocument.activeElement)) return;
+      if (current === incoming) return;
+    }
+    editor.update(() => $populateFromSegments(target), { tag: EXTERNAL_SYNC_TAG });
+  }, [editor, incoming, adoptWhileFocused]);
   return null;
 }
 

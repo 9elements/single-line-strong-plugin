@@ -248,6 +248,22 @@ describe('round trip', () => {
     expect(parseSlateValue(serializeSlateValue(input))).toEqual(canonical);
   });
 
+  // The editor recognises the echo of its own typing by comparing what it wrote with what
+  // DatoCMS hands back. That only works if a write parses back to exactly the content that
+  // produced it; if it ever did not, an echo would look like an outside change and wipe
+  // the user's typing. Only normalized content is listed: that is all the editor reports.
+  it.each([
+    ['an empty field', []],
+    ['plain text', [p('h')]],
+    ['a bold word in plain text', [p('Der schnelle '), b('Fuchs')]],
+    ['a fully bold line', [b('ganz fett')]],
+    ['a space before a bold word', [p('a '), b('b')]],
+  ])('parses what it wrote back to exactly the same content: %s', (_label, content) => {
+    const written = valueToWrite(null, content)?.value ?? null;
+
+    expect(parseSlateValue(written)).toEqual(content);
+  });
+
   it('leaves a value the native editor wrote exactly as it was', () => {
     const native = [
       {

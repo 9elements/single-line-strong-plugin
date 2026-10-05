@@ -47,6 +47,9 @@ export function StructuredTextEditor({ ctx }: Props) {
         onChange={handleChange}
         label={ctx.field.attributes.label}
         disabled={ctx.disabled}
+        // A translation can land in this editor while it has focus, and must show up
+        // without waiting for the user to click away.
+        adoptExternalWhileFocused
       />
     </Canvas>
   );
