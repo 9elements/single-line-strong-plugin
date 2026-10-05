@@ -49,16 +49,27 @@ The plugin is on the DatoCMS Marketplace:
 1. In your project: **Settings → Plugins → Add new plugin**.
 2. Search for **Single-line strong** and install it.
 
-Then attach it to a field:
+Then attach it to a field. For a new field, use the **structured text** route:
+
+1. On a model, add a **Structured text** field and set it up to allow bold only —
+   see [Using it on a structured text field](#using-it-on-a-structured-text-field)
+   for the exact settings.
+2. In the field’s **Presentation** tab, enable the **Single-line strong** addon.
+
+That’s it — edit a record and the field behaves like a single-line input with a
+bold toggle. A length limit goes in the field’s own **Validations** settings, as a
+character-count maximum.
+
+### Legacy: the JSON route
+
+Existing JSON fields keep working, and the route stays supported. It is not
+recommended for new fields.
 
 1. On a model, add or edit a **JSON field** (the plugin only offers itself for
    `json` fields).
 2. Open the field’s **Presentation** tab and choose **Single-line strong** as the
    editor.
 3. *(Optional)* set a **Maximum character count**. Leave it empty for no limit.
-
-That’s it — edit a record and the field behaves like a single-line input with a
-bold toggle.
 
 ## Using it on a structured text field
 
@@ -110,9 +121,27 @@ runs — so a given rendered text always serializes to exactly one array. See
 ## Rendering the value on your frontend
 
 **Structured text route.** Nothing plugin-specific is needed. Render the field with
-whatever you already use for structured text, such as `StructuredText` from
-`react-datocms`. The value is always one paragraph, so you may want to render it
-inline rather than inside a `<p>`.
+whatever you already use for structured text. In Astro, with
+[`@datocms/astro`](https://www.npmjs.com/package/@datocms/astro):
+
+```astro
+---
+import { StructuredText } from '@datocms/astro/StructuredText';
+import { executeQuery } from '@datocms/cda-client';
+
+const { page } = await executeQuery(
+  `query { page { headline { value } } }`,
+  { token: import.meta.env.DATOCMS_API_TOKEN },
+);
+---
+
+<StructuredText data={page.headline} />
+```
+
+Bold text comes out as `<strong>`. The value is always a single paragraph, so the
+output is one `<p>`. If you need it without that wrapper — inside a heading, say — the
+component lets you override how the paragraph node renders; see its
+[docs](https://www.npmjs.com/package/@datocms/astro).
 
 **JSON route (legacy).** The JSON→HTML transform is owned by the consuming app (intentionally out of scope
 for the plugin). A minimal renderer:
