@@ -34,14 +34,14 @@ from DatoCMS.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Parses a well-formed value into segments
-- [ ] Parses tolerantly: null, a bare array, a wrapped object, and garbage all yield a
+- [x] Parses a well-formed value into segments
+- [x] Parses tolerantly: null, a bare array, a wrapped object, and garbage all yield a
       sensible result rather than throwing
-- [ ] Normalisation is covered rule by rule — paragraph flattening, unknown marks
+- [x] Normalisation is covered rule by rule — paragraph flattening, unknown marks
       dropped, adjacent same-mark runs merged, empty runs dropped, empty-is-no-value
-- [ ] Serialises back out, producing the multi-leaf structure the native editor writes
-- [ ] Round-trips: a value survives parse → serialise and comes back normalised
-- [ ] Imports neither Lexical nor React
-- [ ] A comment records that the shape is undocumented and how it was established
+- [x] Serialises back out, producing the multi-leaf structure the native editor writes
+- [x] Round-trips: a value survives parse → serialise and comes back normalised
+- [x] Imports neither Lexical nor React
+- [x] A comment records that the shape is undocumented and how it was established
