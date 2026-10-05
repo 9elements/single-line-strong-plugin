@@ -78,6 +78,28 @@ export function serializeSlateValue(segments: Segment[]): SlateValue | null {
   return [{ type: 'paragraph', children: leaves }];
 }
 
+/**
+ * What, if anything, to write back when the editor reports `segments` for a field
+ * whose form value is `stored`. `undefined` means nothing; `{ value }` is a write,
+ * and `value` may be `null` when the field was cleared.
+ *
+ * The editor reports its content once when a record opens, as if it had changed.
+ * Writing that back would mark the record dirty, and would rewrite a value nobody
+ * edited — including one that was only normalized for display, such as an import
+ * with two paragraphs. So a report that matches what is already stored, once both
+ * are in canonical form, is not a change. Only a real edit writes, and only then
+ * is the normalized form persisted.
+ */
+export function valueToWrite(
+  stored: unknown,
+  segments: Segment[],
+): { value: SlateValue | null } | undefined {
+  const next = serializeSlateValue(segments);
+  const current = serializeSlateValue(parseSlateValue(stored));
+  if (JSON.stringify(next) === JSON.stringify(current)) return undefined;
+  return { value: next };
+}
+
 /** The form's own value is a bare array of blocks; dast wraps the same in `document`. */
 function topLevelBlocks(raw: unknown): unknown[] {
   if (Array.isArray(raw)) return raw;
