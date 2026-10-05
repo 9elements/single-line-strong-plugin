@@ -1,8 +1,8 @@
 {
   "name": "datocms-plugin-single-line-strong",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
-  "description": "DatoCMS manual field extension: single-line text editor with a bold mark, stored as a segment array on a JSON field.",
+  "description": "Single-line text editor with a bold mark for DatoCMS. For new fields, enable the addon on a Structured text field; the JSON field editor remains available as a legacy option.",
   "homepage": "https://github.com/9elements/single-line-strong-plugin",
   "license": "MIT",
   "author": "9elements <hi@9elements.com> (https://9elements.com)",
@@ -24,7 +24,8 @@
   "files": [
     "dist",
     "docs",
-    "!docs/adr"
+    "!docs/adr",
+    "!docs/specs"
   ],
   "datoCmsPlugin": {
     "title": "Single-line strong",

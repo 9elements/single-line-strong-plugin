@@ -1,11 +1,30 @@
 # Single-line Strong — DatoCMS plugin
 
-A DatoCMS manual field extension that turns a **JSON field** into a single-line
-text input where selected text can be made **bold** — and nothing else. Editors
-get a clean one-line field; the value is stored as structured JSON (a segment
-array), so there's no HTML to parse or sanitize.
+A DatoCMS plugin that gives a field a single-line text input where selected text can
+be made **bold** — and nothing else. Editors get a clean one-line field. It works on
+**Structured text** fields (recommended) and, as a legacy option, on **JSON** fields.
 
 ![Single-line Strong](docs/cover.png)
+
+## Two ways to use it
+
+The route is chosen by the **field type**, which is fixed when the field is created —
+there is no switch.
+
+| | **Structured text** (recommended) | **JSON** (legacy) |
+|---|---|---|
+| Field type | Structured text | JSON |
+| How you enable it | Enable the **Single-line strong** addon in Presentation | Pick **Single-line strong** as the editor in Presentation |
+| Field identifies as | `structured_text`, so translation and other format-aware tools treat it as native | the plugin’s own editor, so tools like `ai-translations` skip it |
+| Length limit | The field’s native length validator, enforced at save | The plugin’s own setting, enforced in the editor only |
+
+**For a new field, use Structured text.** The JSON route is **legacy: supported, not
+recommended for new fields.** Existing installs keep working and nothing is being
+removed.
+
+Moving an existing JSON field to Structured text means creating a new field,
+migrating the content and updating your frontend. No migration is required: if the
+JSON route works for you, leave it as it is.
 
 ## Features
 
@@ -17,9 +36,13 @@ array), so there's no HTML to parse or sanitize.
   newlines are collapsed to spaces.
 - **WYSIWYG.** Bold renders as actual bold text — editors never see `<strong>` or
   raw JSON.
-- **Optional length limit.** Set a max character count per field; a live “X/Y”
-  counter shows progress and input is hard-blocked at the limit. Bold markup
-  doesn’t count toward the limit.
+- **Optional length limit.** A live “X/Y” counter shows progress and input is
+  hard-blocked at the limit. Bold markup doesn’t count toward it. On a Structured
+  text field the limit is the field’s own length validator, so it is also enforced
+  when the record saves; on a JSON field it is the plugin’s own setting.
+- **Safe on unexpected content.** A value the editor can’t show — a second paragraph
+  from an import, an unsupported mark — is flattened for display with a notice, and
+  is only changed once you edit it. Opening a record never modifies it.
 - **Localization & read-only** are supported out of the box.
 
 ## Install
@@ -29,7 +52,38 @@ The plugin is on the DatoCMS Marketplace:
 1. In your project: **Settings → Plugins → Add new plugin**.
 2. Search for **Single-line strong** and install it.
 
-Then attach it to a field:
+Then set up a field: a [Structured text field](#using-it-on-a-structured-text-field)
+for anything new, or the [legacy JSON route](#legacy-the-json-route) for an existing
+JSON field.
+
+## Using it on a structured text field
+
+The plugin can also take over a **Structured text** field. The field stays an
+ordinary structured text field as far as the rest of DatoCMS is concerned; only the
+editor you see changes.
+
+Set the field up so it allows bold and nothing else:
+
+1. Add a **Structured text** field to a model.
+2. In its **Presentation** settings, allow the **bold** mark only, and allow no
+   nodes (no headings, lists, links, quotes or code).
+3. In its **Validations** settings, allow no embedded blocks, no inline blocks and no
+   links to other records.
+4. *(Optional)* in **Validations**, set a maximum **number of characters**. The
+   editor shows it as a live counter and stops input at the limit, and DatoCMS
+   enforces it when the record saves — including for values written by translation
+   or scripts.
+5. Back in **Presentation**, enable the **Single-line strong** addon.
+
+If the field allows more than that, the addon’s settings panel says what — for
+example “This field also allows emphasis and underline, which the single-line editor
+cannot show.” It is only a heads-up: you can still save the field, and the editor
+simply drops what it cannot show the next time the field is edited.
+
+## Legacy: the JSON route
+
+Existing JSON fields keep working, and the route stays supported. It is not
+recommended for new fields.
 
 1. On a model, add or edit a **JSON field** (the plugin only offers itself for
    `json` fields).
@@ -37,13 +91,16 @@ Then attach it to a field:
    editor.
 3. *(Optional)* set a **Maximum character count**. Leave it empty for no limit.
 
-That’s it — edit a record and the field behaves like a single-line input with a
-bold toggle.
-
 ## Stored value
 
-An empty field stores `null`. A non-empty field stores a JSON string holding the
-normalized segment array plus a plain-text mirror:
+**Structured text route.** The field holds an ordinary structured text value: a single
+paragraph, with bold text carrying the `strong` mark. An empty field is `null`. Through
+the CMA and GraphQL you get it back as standard
+[dast](https://www.datocms.com/docs/structured-text/dast), like any other structured
+text field.
+
+**JSON route (legacy).** An empty field stores `null`. A non-empty field stores a
+JSON string holding the normalized segment array plus a plain-text mirror:
 
 ```json
 {
@@ -63,8 +120,31 @@ runs — so a given rendered text always serializes to exactly one array. See
 
 ## Rendering the value on your frontend
 
-The JSON→HTML transform is owned by the consuming app (intentionally out of scope
-for the plugin). A minimal renderer:
+**Structured text route.** Nothing plugin-specific is needed. Render the field with
+whatever you already use for structured text. In Astro, with
+[`@datocms/astro`](https://www.npmjs.com/package/@datocms/astro):
+
+```astro
+---
+import { StructuredText } from '@datocms/astro/StructuredText';
+import { executeQuery } from '@datocms/cda-client';
+
+const { page } = await executeQuery(
+  `query { page { headline { value } } }`,
+  { token: import.meta.env.DATOCMS_API_TOKEN },
+);
+---
+
+<StructuredText data={page.headline} />
+```
+
+Bold text comes out as `<strong>`. The value is always a single paragraph, so the
+output is one `<p>`. If you need it without that wrapper — inside a heading, say — the
+component lets you override how the paragraph node renders; see its
+[docs](https://www.npmjs.com/package/@datocms/astro).
+
+**JSON route (legacy).** The JSON→HTML transform is owned by the consuming app
+(intentionally out of scope for the plugin). A minimal renderer:
 
 ```ts
 type Segment = { value: string; mark: boolean };
@@ -87,10 +167,11 @@ directly.
 ## Development
 
 ```bash
+# use the Node version in .nvmrc
 npm install
 npm run dev      # serve the plugin at http://localhost:5173
 npm run build    # typecheck (tsc -b) + production build into dist/
-npm test         # run the segment / bridge test suites (vitest)
+npm test         # run the test suites (vitest)
 ```
 
 To try local changes against a real project, run `npm run dev`, then in DatoCMS go

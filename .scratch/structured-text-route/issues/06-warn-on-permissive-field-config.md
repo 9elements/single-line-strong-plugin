@@ -18,10 +18,10 @@ right the first time rather than by reading a warning.
 
 **Blocked by:** 04 (render structured_text field).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The config screen reads the field's own marks, nodes and validators
-- [ ] It warns, specifically, about what is allowed that the editor cannot represent
-- [ ] A correctly configured field produces no warning
-- [ ] The warning never prevents saving the field or using the addon
-- [ ] The required field configuration is documented in the README
+- [x] The config screen reads the field's own marks, nodes and validators
+- [x] It warns, specifically, about what is allowed that the editor cannot represent
+- [x] A correctly configured field produces no warning
+- [x] The warning never prevents saving the field or using the addon
+- [x] The required field configuration is documented in the README

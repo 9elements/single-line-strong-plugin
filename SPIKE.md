@@ -141,7 +141,7 @@ implementation.
 | G1 | `appearance.editor` stays native | **PASS** | Reads `structured_text` while the override is rendering. The inference the whole direction rested on is confirmed empirically. |
 | G2 | ai-translations works, `strong` survives | **PASS** | The Translate action appears on an overridden field, runs, and writes the target locale. A value carrying `{"text":"form","strong":true}` round-tripped with the mark intact. Caveat: the test string was identical in both languages, so mark *placement* under real translation is still unproven — see below. |
 | S1 | Addon opt-in signal works | **PASS** | Addon lands in `appearance.addons` as `<pluginId>/spikeOptIn`, and the editor identity stays native alongside it. The override reads it back and claims the field. |
-| S2 | `length` unit | partial | A `max: 60` validator reported "Feld darf nicht mehr als 60 Zeichen lang sein" on an **empty** field, so it is not counting visible characters as expected. Needs a deliberate test. |
+| S2 | `length` unit | **PASS** | Tested with `max: 10`: 12 plain characters blocked; two paragraphs of 6 blocked (text counts across paragraphs); `aaaa` plus bold `bbbbbb` (10 visible) saved, so bold markup is not counted; 10 plain characters saved; an empty field saved. The earlier rejection of an empty field did not reproduce. Unit: visible characters. Note DatoCMS shows the failure as `fieldError.undefined` in the form — its own missing message, not ours. |
 | S3 | Fallback appearance | — | |
 
 ### Confirmed: a mark stays on the right word

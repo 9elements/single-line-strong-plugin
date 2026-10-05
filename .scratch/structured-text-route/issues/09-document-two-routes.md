@@ -41,16 +41,16 @@ wrong choice; the rest is for people already reading.
 
 **Blocked by:** 04 (render structured_text field).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The JSON config screen shows a non-blocking legacy note linking to the
+- [x] The JSON config screen shows a non-blocking legacy note linking to the
       structured_text setup instructions
-- [ ] The note does not block or interfere with configuring a JSON field
-- [ ] The README documents both routes, how each is enabled, and which to choose for a
+- [x] The note does not block or interfere with configuring a JSON field
+- [x] The README documents both routes, how each is enabled, and which to choose for a
       new field
-- [ ] The README states that moving an existing field across means a new field plus a
+- [x] The README states that moving an existing field across means a new field plus a
       content migration, and that no migration is required
-- [ ] The marketplace description directs new installations to the structured_text
+- [x] The marketplace description directs new installations to the structured_text
       route
-- [ ] The changelog entry describes the new route and the legacy positioning
-- [ ] Nothing anywhere implies the JSON route will be removed
+- [x] The changelog entry describes the new route and the legacy positioning
+- [x] Nothing anywhere implies the JSON route will be removed

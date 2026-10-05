@@ -1,0 +1,12 @@
+/*
+  Notice under the structured_text editor. Colours come from DatoCMS's design
+  tokens so light and dark mode both stay readable; each has a fallback.
+*/
+.st-editor__notice {
+  margin: var(--spacing-s, 8px) 0 0;
+  padding: var(--spacing-s, 8px) var(--spacing-m, 12px);
+  border-left: 4px solid var(--warning-color, currentColor);
+  background: var(--color--warning-soft--surface, transparent);
+  color: var(--color--ink-warning, inherit);
+  font-size: var(--font-size-m);
+}

@@ -20,12 +20,12 @@ Do not fake an enforcement that is not there.
 
 **Blocked by:** 04 (render structured_text field).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] What `length` counts on structured_text is established against a real field and
+- [x] What `length` counts on structured_text is established against a real field and
       written down
-- [ ] If usable: the per-field maximum is expressed as the native validator, and
+- [x] If usable: the per-field maximum is expressed as the native validator, and
       exceeding it blocks the save
-- [ ] If unusable: the input-level limit stays and the limitation is documented
-- [ ] The live counter reflects visible characters, ignoring bold markup
-- [ ] The JSON route's existing limit behaviour is unchanged either way
+- [x] If unusable: the input-level limit stays and the limitation is documented
+- [x] The live counter reflects visible characters, ignoring bold markup
+- [x] The JSON route's existing limit behaviour is unchanged either way
