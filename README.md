@@ -82,7 +82,13 @@ simply drops what it cannot show the next time the field is edited.
 
 ## Stored value
 
-An empty field stores `null`. A non-empty field stores a JSON string holding the
+**Structured text route.** The field holds an ordinary structured text value: a single
+paragraph, with bold text carrying the `strong` mark. An empty field is `null`. Through
+the CMA and GraphQL you get it back as standard
+[dast](https://www.datocms.com/docs/structured-text/dast), like any other structured
+text field.
+
+**JSON route (legacy).** An empty field stores `null`. A non-empty field stores a JSON string holding the
 normalized segment array plus a plain-text mirror:
 
 ```json
@@ -103,7 +109,12 @@ runs — so a given rendered text always serializes to exactly one array. See
 
 ## Rendering the value on your frontend
 
-The JSON→HTML transform is owned by the consuming app (intentionally out of scope
+**Structured text route.** Nothing plugin-specific is needed. Render the field with
+whatever you already use for structured text, such as `StructuredText` from
+`react-datocms`. The value is always one paragraph, so you may want to render it
+inline rather than inside a `<p>`.
+
+**JSON route (legacy).** The JSON→HTML transform is owned by the consuming app (intentionally out of scope
 for the plugin). A minimal renderer:
 
 ```ts
